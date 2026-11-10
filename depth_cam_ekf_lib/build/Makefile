@@ -155,6 +155,30 @@ realsense_intrinsic_params/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/realsense_intrinsic_params.dir/build.make CMakeFiles/realsense_intrinsic_params.dir/build
 .PHONY : realsense_intrinsic_params/fast
 
+src/main/Camera.o: src/main/Camera.cpp.o
+.PHONY : src/main/Camera.o
+
+# target to build an object file
+src/main/Camera.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o
+.PHONY : src/main/Camera.cpp.o
+
+src/main/Camera.i: src/main/Camera.cpp.i
+.PHONY : src/main/Camera.i
+
+# target to preprocess a source file
+src/main/Camera.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.i
+.PHONY : src/main/Camera.cpp.i
+
+src/main/Camera.s: src/main/Camera.cpp.s
+.PHONY : src/main/Camera.s
+
+# target to generate assembly for a file
+src/main/Camera.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.s
+.PHONY : src/main/Camera.cpp.s
+
 src/main/DepthCamSLAM.o: src/main/DepthCamSLAM.cpp.o
 .PHONY : src/main/DepthCamSLAM.o
 
@@ -178,6 +202,102 @@ src/main/DepthCamSLAM.s: src/main/DepthCamSLAM.cpp.s
 src/main/DepthCamSLAM.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/DepthCamSLAM.cpp.s
 .PHONY : src/main/DepthCamSLAM.cpp.s
+
+src/main/Feature.o: src/main/Feature.cpp.o
+.PHONY : src/main/Feature.o
+
+# target to build an object file
+src/main/Feature.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o
+.PHONY : src/main/Feature.cpp.o
+
+src/main/Feature.i: src/main/Feature.cpp.i
+.PHONY : src/main/Feature.i
+
+# target to preprocess a source file
+src/main/Feature.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.i
+.PHONY : src/main/Feature.cpp.i
+
+src/main/Feature.s: src/main/Feature.cpp.s
+.PHONY : src/main/Feature.s
+
+# target to generate assembly for a file
+src/main/Feature.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.s
+.PHONY : src/main/Feature.cpp.s
+
+src/main/FeatureInitInfo.o: src/main/FeatureInitInfo.cpp.o
+.PHONY : src/main/FeatureInitInfo.o
+
+# target to build an object file
+src/main/FeatureInitInfo.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o
+.PHONY : src/main/FeatureInitInfo.cpp.o
+
+src/main/FeatureInitInfo.i: src/main/FeatureInitInfo.cpp.i
+.PHONY : src/main/FeatureInitInfo.i
+
+# target to preprocess a source file
+src/main/FeatureInitInfo.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.i
+.PHONY : src/main/FeatureInitInfo.cpp.i
+
+src/main/FeatureInitInfo.s: src/main/FeatureInitInfo.cpp.s
+.PHONY : src/main/FeatureInitInfo.s
+
+# target to generate assembly for a file
+src/main/FeatureInitInfo.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.s
+.PHONY : src/main/FeatureInitInfo.cpp.s
+
+src/main/FeatureModel.o: src/main/FeatureModel.cpp.o
+.PHONY : src/main/FeatureModel.o
+
+# target to build an object file
+src/main/FeatureModel.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o
+.PHONY : src/main/FeatureModel.cpp.o
+
+src/main/FeatureModel.i: src/main/FeatureModel.cpp.i
+.PHONY : src/main/FeatureModel.i
+
+# target to preprocess a source file
+src/main/FeatureModel.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.i
+.PHONY : src/main/FeatureModel.cpp.i
+
+src/main/FeatureModel.s: src/main/FeatureModel.cpp.s
+.PHONY : src/main/FeatureModel.s
+
+# target to generate assembly for a file
+src/main/FeatureModel.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.s
+.PHONY : src/main/FeatureModel.cpp.s
+
+src/main/FullFeatureModel.o: src/main/FullFeatureModel.cpp.o
+.PHONY : src/main/FullFeatureModel.o
+
+# target to build an object file
+src/main/FullFeatureModel.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o
+.PHONY : src/main/FullFeatureModel.cpp.o
+
+src/main/FullFeatureModel.i: src/main/FullFeatureModel.cpp.i
+.PHONY : src/main/FullFeatureModel.i
+
+# target to preprocess a source file
+src/main/FullFeatureModel.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.i
+.PHONY : src/main/FullFeatureModel.cpp.i
+
+src/main/FullFeatureModel.s: src/main/FullFeatureModel.cpp.s
+.PHONY : src/main/FullFeatureModel.s
+
+# target to generate assembly for a file
+src/main/FullFeatureModel.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.s
+.PHONY : src/main/FullFeatureModel.cpp.s
 
 src/main/Log.o: src/main/Log.cpp.o
 .PHONY : src/main/Log.o
@@ -227,6 +347,54 @@ src/main/Main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/Main.cpp.s
 .PHONY : src/main/Main.cpp.s
 
+src/main/MotionModel.o: src/main/MotionModel.cpp.o
+.PHONY : src/main/MotionModel.o
+
+# target to build an object file
+src/main/MotionModel.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o
+.PHONY : src/main/MotionModel.cpp.o
+
+src/main/MotionModel.i: src/main/MotionModel.cpp.i
+.PHONY : src/main/MotionModel.i
+
+# target to preprocess a source file
+src/main/MotionModel.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.i
+.PHONY : src/main/MotionModel.cpp.i
+
+src/main/MotionModel.s: src/main/MotionModel.cpp.s
+.PHONY : src/main/MotionModel.s
+
+# target to generate assembly for a file
+src/main/MotionModel.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.s
+.PHONY : src/main/MotionModel.cpp.s
+
+src/main/PartFeatureModel.o: src/main/PartFeatureModel.cpp.o
+.PHONY : src/main/PartFeatureModel.o
+
+# target to build an object file
+src/main/PartFeatureModel.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o
+.PHONY : src/main/PartFeatureModel.cpp.o
+
+src/main/PartFeatureModel.i: src/main/PartFeatureModel.cpp.i
+.PHONY : src/main/PartFeatureModel.i
+
+# target to preprocess a source file
+src/main/PartFeatureModel.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.i
+.PHONY : src/main/PartFeatureModel.cpp.i
+
+src/main/PartFeatureModel.s: src/main/PartFeatureModel.cpp.s
+.PHONY : src/main/PartFeatureModel.s
+
+# target to generate assembly for a file
+src/main/PartFeatureModel.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.s
+.PHONY : src/main/PartFeatureModel.cpp.s
+
 src/main/framegrabber/FrameGrabber.o: src/main/framegrabber/FrameGrabber.cpp.o
 .PHONY : src/main/framegrabber/FrameGrabber.o
 
@@ -275,6 +443,30 @@ src/main/framegrabber/UsbCamGrabber.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/framegrabber/UsbCamGrabber.cpp.s
 .PHONY : src/main/framegrabber/UsbCamGrabber.cpp.s
 
+src/main/improc/SearchMultipleOverlappingEllipses.o: src/main/improc/SearchMultipleOverlappingEllipses.cpp.o
+.PHONY : src/main/improc/SearchMultipleOverlappingEllipses.o
+
+# target to build an object file
+src/main/improc/SearchMultipleOverlappingEllipses.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o
+.PHONY : src/main/improc/SearchMultipleOverlappingEllipses.cpp.o
+
+src/main/improc/SearchMultipleOverlappingEllipses.i: src/main/improc/SearchMultipleOverlappingEllipses.cpp.i
+.PHONY : src/main/improc/SearchMultipleOverlappingEllipses.i
+
+# target to preprocess a source file
+src/main/improc/SearchMultipleOverlappingEllipses.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.i
+.PHONY : src/main/improc/SearchMultipleOverlappingEllipses.cpp.i
+
+src/main/improc/SearchMultipleOverlappingEllipses.s: src/main/improc/SearchMultipleOverlappingEllipses.cpp.s
+.PHONY : src/main/improc/SearchMultipleOverlappingEllipses.s
+
+# target to generate assembly for a file
+src/main/improc/SearchMultipleOverlappingEllipses.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.s
+.PHONY : src/main/improc/SearchMultipleOverlappingEllipses.cpp.s
+
 src/main/improc/improc.o: src/main/improc/improc.cpp.o
 .PHONY : src/main/improc/improc.o
 
@@ -298,6 +490,54 @@ src/main/improc/improc.s: src/main/improc/improc.cpp.s
 src/main/improc/improc.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/improc/improc.cpp.s
 .PHONY : src/main/improc/improc.cpp.s
+
+src/main/support/eigen_util.o: src/main/support/eigen_util.cpp.o
+.PHONY : src/main/support/eigen_util.o
+
+# target to build an object file
+src/main/support/eigen_util.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o
+.PHONY : src/main/support/eigen_util.cpp.o
+
+src/main/support/eigen_util.i: src/main/support/eigen_util.cpp.i
+.PHONY : src/main/support/eigen_util.i
+
+# target to preprocess a source file
+src/main/support/eigen_util.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.i
+.PHONY : src/main/support/eigen_util.cpp.i
+
+src/main/support/eigen_util.s: src/main/support/eigen_util.cpp.s
+.PHONY : src/main/support/eigen_util.s
+
+# target to generate assembly for a file
+src/main/support/eigen_util.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.s
+.PHONY : src/main/support/eigen_util.cpp.s
+
+src/main/support/math_util.o: src/main/support/math_util.cpp.o
+.PHONY : src/main/support/math_util.o
+
+# target to build an object file
+src/main/support/math_util.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o
+.PHONY : src/main/support/math_util.cpp.o
+
+src/main/support/math_util.i: src/main/support/math_util.cpp.i
+.PHONY : src/main/support/math_util.i
+
+# target to preprocess a source file
+src/main/support/math_util.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.i
+.PHONY : src/main/support/math_util.cpp.i
+
+src/main/support/math_util.s: src/main/support/math_util.cpp.s
+.PHONY : src/main/support/math_util.s
+
+# target to generate assembly for a file
+src/main/support/math_util.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/DepthCamEKF.dir/build.make CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.s
+.PHONY : src/main/support/math_util.cpp.s
 
 src/test/realsense_intrinsic_params.o: src/test/realsense_intrinsic_params.cpp.o
 .PHONY : src/test/realsense_intrinsic_params.o
@@ -358,24 +598,54 @@ help:
 	@echo "... DepthCamEKF"
 	@echo "... realsense_intrinsic_params"
 	@echo "... realsense_test"
+	@echo "... src/main/Camera.o"
+	@echo "... src/main/Camera.i"
+	@echo "... src/main/Camera.s"
 	@echo "... src/main/DepthCamSLAM.o"
 	@echo "... src/main/DepthCamSLAM.i"
 	@echo "... src/main/DepthCamSLAM.s"
+	@echo "... src/main/Feature.o"
+	@echo "... src/main/Feature.i"
+	@echo "... src/main/Feature.s"
+	@echo "... src/main/FeatureInitInfo.o"
+	@echo "... src/main/FeatureInitInfo.i"
+	@echo "... src/main/FeatureInitInfo.s"
+	@echo "... src/main/FeatureModel.o"
+	@echo "... src/main/FeatureModel.i"
+	@echo "... src/main/FeatureModel.s"
+	@echo "... src/main/FullFeatureModel.o"
+	@echo "... src/main/FullFeatureModel.i"
+	@echo "... src/main/FullFeatureModel.s"
 	@echo "... src/main/Log.o"
 	@echo "... src/main/Log.i"
 	@echo "... src/main/Log.s"
 	@echo "... src/main/Main.o"
 	@echo "... src/main/Main.i"
 	@echo "... src/main/Main.s"
+	@echo "... src/main/MotionModel.o"
+	@echo "... src/main/MotionModel.i"
+	@echo "... src/main/MotionModel.s"
+	@echo "... src/main/PartFeatureModel.o"
+	@echo "... src/main/PartFeatureModel.i"
+	@echo "... src/main/PartFeatureModel.s"
 	@echo "... src/main/framegrabber/FrameGrabber.o"
 	@echo "... src/main/framegrabber/FrameGrabber.i"
 	@echo "... src/main/framegrabber/FrameGrabber.s"
 	@echo "... src/main/framegrabber/UsbCamGrabber.o"
 	@echo "... src/main/framegrabber/UsbCamGrabber.i"
 	@echo "... src/main/framegrabber/UsbCamGrabber.s"
+	@echo "... src/main/improc/SearchMultipleOverlappingEllipses.o"
+	@echo "... src/main/improc/SearchMultipleOverlappingEllipses.i"
+	@echo "... src/main/improc/SearchMultipleOverlappingEllipses.s"
 	@echo "... src/main/improc/improc.o"
 	@echo "... src/main/improc/improc.i"
 	@echo "... src/main/improc/improc.s"
+	@echo "... src/main/support/eigen_util.o"
+	@echo "... src/main/support/eigen_util.i"
+	@echo "... src/main/support/eigen_util.s"
+	@echo "... src/main/support/math_util.o"
+	@echo "... src/main/support/math_util.i"
+	@echo "... src/main/support/math_util.s"
 	@echo "... src/test/realsense_intrinsic_params.o"
 	@echo "... src/test/realsense_intrinsic_params.i"
 	@echo "... src/test/realsense_intrinsic_params.s"

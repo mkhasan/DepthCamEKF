@@ -5,7 +5,7 @@
 #include "SearchMultipleOverlappingEllipses.h"
 #include "improc.h"
 
-SearchMultipleOverlappingEllipses::SearchDatum::SearchDatum(
+depth_cam_ekf::SearchMultipleOverlappingEllipses::SearchDatum::SearchDatum(
     const Eigen::Matrix2d &PuInv, const Eigen::Vector2d &search_centre) :
     PuInv_(PuInv), search_centre_(search_centre), result_flag_(false),
     result_u_(0), result_v_(0)
@@ -18,7 +18,7 @@ SearchMultipleOverlappingEllipses::SearchDatum::SearchDatum(
 // (three standard deviation) ellipse.
 // @param u The x-co-ordinate to test
 // @param v The x-co-ordinate to test
-bool SearchMultipleOverlappingEllipses::SearchDatum::inside_fast(int u, int v)
+bool depth_cam_ekf::SearchMultipleOverlappingEllipses::SearchDatum::inside_fast(int u, int v)
 {
     u = abs(u - int(search_centre_(0) + 0.5));
 
@@ -37,7 +37,7 @@ bool SearchMultipleOverlappingEllipses::SearchDatum::inside_fast(int u, int v)
 // standard deviations).
 // @param u The x-co-ordinate to test
 // @param v The x-co-ordinate to test
-bool SearchMultipleOverlappingEllipses::SearchDatum::inside(int u, int v)
+bool depth_cam_ekf::SearchMultipleOverlappingEllipses::SearchDatum::inside(int u, int v)
 {
     u = abs(u - int(search_centre_(0) + 0.5));
     v = abs(v - int(search_centre_(1) + 0.5));
@@ -50,7 +50,7 @@ bool SearchMultipleOverlappingEllipses::SearchDatum::inside(int u, int v)
 // centre of the ellipse, not absolute co-ordinates.
 // @param u The horizontal distance from the search centre
 // @param v The vertical distance from the search centre
-bool SearchMultipleOverlappingEllipses::SearchDatum::inside_relative(int u, int v)
+bool depth_cam_ekf::SearchMultipleOverlappingEllipses::SearchDatum::inside_relative(int u, int v)
 {
     return  (PuInv_(0,0) * u * u + 2 * PuInv_(0,1) * u * v +
             PuInv_(1,1) * v * v <  NO_SIGMA * NO_SIGMA);
@@ -61,8 +61,8 @@ bool SearchMultipleOverlappingEllipses::SearchDatum::inside_relative(int u, int 
 // over the ellipse defined by NO_SIGMA standard deviations from the centre of the
 // search.
 // @param search_centre The centre of the search.
-void SearchMultipleOverlappingEllipses::add_ellipse(const Eigen::Matrix2d &PuInv,
-                                                    const Eigen::Vector2d &search_centre)
+void depth_cam_ekf::SearchMultipleOverlappingEllipses::add_ellipse(const Eigen::Matrix2d &PuInv,
+                                                                   const Eigen::Vector2d &search_centre)
 {
     m_searchdata_.push_back(SearchDatum(PuInv, search_centre));
 }
@@ -70,7 +70,7 @@ void SearchMultipleOverlappingEllipses::add_ellipse(const Eigen::Matrix2d &PuInv
 // Search for the image patch over all of the ellipses registered with the class.
 // Since correlation is expensive we locally cache the correlation results so that
 // we only do it once at each image location.
-void SearchMultipleOverlappingEllipses::search()
+void depth_cam_ekf::SearchMultipleOverlappingEllipses::search()
 {
     // Rather than working out an overall bounding box, we'll be slightly
     // lazy and make an array for correlation results which is the same size
@@ -160,3 +160,4 @@ void SearchMultipleOverlappingEllipses::search()
         else
             i->result_flag_ = true;
     }
+}

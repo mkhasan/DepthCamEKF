@@ -153,6 +153,146 @@ CMakeFiles/DepthCamEKF.dir/src/main/improc/improc.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/improc/improc.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/improc/improc.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/improc/improc.cpp.s
 
+CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o: ../src/main/improc/SearchMultipleOverlappingEllipses.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/improc/SearchMultipleOverlappingEllipses.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/improc/SearchMultipleOverlappingEllipses.cpp > CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/improc/SearchMultipleOverlappingEllipses.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o: ../src/main/MotionModel.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/MotionModel.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/MotionModel.cpp > CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/MotionModel.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o: ../src/main/FeatureModel.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FeatureModel.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FeatureModel.cpp > CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FeatureModel.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o: ../src/main/PartFeatureModel.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/PartFeatureModel.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/PartFeatureModel.cpp > CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/PartFeatureModel.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o: ../src/main/FullFeatureModel.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FullFeatureModel.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FullFeatureModel.cpp > CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FullFeatureModel.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o: ../src/main/Feature.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/Feature.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/Feature.cpp > CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/Feature.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o: ../src/main/FeatureInitInfo.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FeatureInitInfo.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FeatureInitInfo.cpp > CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/FeatureInitInfo.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o: ../src/main/Camera.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/Camera.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/Camera.cpp > CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/Camera.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o: ../src/main/support/math_util.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/support/math_util.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/support/math_util.cpp > CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/support/math_util.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.s
+
+CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o: CMakeFiles/DepthCamEKF.dir/flags.make
+CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o: ../src/main/support/eigen_util.cpp
+CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o: CMakeFiles/DepthCamEKF.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o -MF CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o.d -o CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o -c /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/support/eigen_util.cpp
+
+CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/support/eigen_util.cpp > CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.i
+
+CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/src/main/support/eigen_util.cpp -o CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.s
+
 # Object files for target DepthCamEKF
 DepthCamEKF_OBJECTS = \
 "CMakeFiles/DepthCamEKF.dir/src/main/Log.cpp.o" \
@@ -160,7 +300,17 @@ DepthCamEKF_OBJECTS = \
 "CMakeFiles/DepthCamEKF.dir/src/main/DepthCamSLAM.cpp.o" \
 "CMakeFiles/DepthCamEKF.dir/src/main/framegrabber/UsbCamGrabber.cpp.o" \
 "CMakeFiles/DepthCamEKF.dir/src/main/framegrabber/FrameGrabber.cpp.o" \
-"CMakeFiles/DepthCamEKF.dir/src/main/improc/improc.cpp.o"
+"CMakeFiles/DepthCamEKF.dir/src/main/improc/improc.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o" \
+"CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o"
 
 # External object files for target DepthCamEKF
 DepthCamEKF_EXTERNAL_OBJECTS =
@@ -171,6 +321,16 @@ DepthCamEKF_EXTERNAL_OBJECTS =
 ../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/framegrabber/UsbCamGrabber.cpp.o
 ../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/framegrabber/FrameGrabber.cpp.o
 ../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/improc/improc.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/improc/SearchMultipleOverlappingEllipses.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/MotionModel.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/FeatureModel.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/PartFeatureModel.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/FullFeatureModel.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/Feature.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/FeatureInitInfo.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/Camera.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/support/math_util.cpp.o
+../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/src/main/support/eigen_util.cpp.o
 ../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/build.make
 ../bin/DepthCamEKF: /usr/lib/x86_64-linux-gnu/libglut.so
 ../bin/DepthCamEKF: /usr/lib/x86_64-linux-gnu/libXi.so
@@ -214,7 +374,7 @@ DepthCamEKF_EXTERNAL_OBJECTS =
 ../bin/DepthCamEKF: /usr/local/lib/x86_64-linux-gnu/libpango_core.so.0.9.6
 ../bin/DepthCamEKF: /usr/lib/x86_64-linux-gnu/libboost_atomic.so.1.74.0
 ../bin/DepthCamEKF: CMakeFiles/DepthCamEKF.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable ../bin/DepthCamEKF"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Linking CXX executable ../bin/DepthCamEKF"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/DepthCamEKF.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

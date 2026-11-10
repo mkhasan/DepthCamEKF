@@ -25,6 +25,16 @@ add_executable(${PROJECT_NAME} src/main/Log.cpp
         src/main/framegrabber/UsbCamGrabber.cpp
         src/main/framegrabber/FrameGrabber.cpp
         src/main/improc/improc.cpp
+        src/main/improc/SearchMultipleOverlappingEllipses.cpp
+        src/main/MotionModel.cpp
+        src/main/FeatureModel.cpp
+        src/main/PartFeatureModel.cpp
+        src/main/FullFeatureModel.cpp
+        src/main/Feature.cpp
+        src/main/FeatureInitInfo.cpp
+        src/main/Camera.cpp
+        src/main/support/math_util.cpp
+        src/main/support/eigen_util.cpp
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC ${Pangolin_LIBRARY_DIRS} ${OpenCV_LIB_DIR} ${Boost_LIBRARY_DIRS} $ENV{REALSENSE_ROOT}/build/Release )

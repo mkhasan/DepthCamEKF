@@ -9,19 +9,28 @@
 #include <string>
 
 
-namespace depth_cam_ekf {
+
 
 using namespace std;
 
-DepthCamSLAM::DepthCamSLAM() {
+depth_cam_ekf::DepthCamSLAM::DepthCamSLAM() :
+        kBoxSize_(11), kNoSigma_(3.0), kCorrThresh2_(0.40),
+        kCorrelationSigmaThreshold_(10.0)
+    {
+        camera_ = nullptr;
+        motion_model_ = nullptr;
+        full_feature_model_ = nullptr;
+        part_feature_model_ = nullptr;
 
-}
+        frame_grabber_ = nullptr;
+        // graphic_tool_ = NULL;
+        //
+        // kalman_ = NULL;
+    }
 
-DepthCamSLAM::~DepthCamSLAM() {
+depth_cam_ekf::DepthCamSLAM::~DepthCamSLAM() = default;
 
-}
-
-void DepthCamSLAM::Init(const string &config_path) {
+void depth_cam_ekf::DepthCamSLAM::Init(const string &config_path) {
 
     pangolin::ParseVarsFile(config_path);
 
@@ -295,8 +304,7 @@ void DepthCamSLAM::Init(const string &config_path) {
 
 }
 
-bool DepthCamSLAM::GoOneStep(cv::Mat frame, bool save_trajectory, bool enable_mapping) {
+bool depth_cam_ekf::DepthCamSLAM::GoOneStep(cv::Mat frame, bool save_trajectory, bool enable_mapping) {
     return true;
 }
 
-}
