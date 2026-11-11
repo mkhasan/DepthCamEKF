@@ -21,7 +21,9 @@ namespace depth_cam_ekf {
         cv::Mat data;
     };
 
+    class FileGrabber;
     class UsbCamGrabber;
+
     class FrameGrabber {
     public:
         FrameGrabber();
@@ -37,7 +39,7 @@ namespace depth_cam_ekf {
         std::queue<Frame>  frame_buffer_;
         boost::mutex  fg_mutex_;
 
-        //FileGrabber   *file_grabber_;
+        FileGrabber   *file_grabber_;
         UsbCamGrabber *usb_cam_grabber_;
     };
 

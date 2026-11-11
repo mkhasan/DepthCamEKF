@@ -13,6 +13,7 @@
 #include "FullFeatureModel.h"
 #include "FeatureInitInfo.h"
 #include "framegrabber/FrameGrabber.h"
+#include  "graphic/GraphicTool.h"
 
 #include <vector>
 #include <Eigen/Eigen>
@@ -25,8 +26,16 @@ namespace depth_cam_ekf {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         DepthCamSLAM();
         ~DepthCamSLAM();
-        static void Init(const std::string &config_path);
+        void Init(const std::string &config_path);
         bool GoOneStep(cv::Mat frame, bool save_trajectory, bool enable_mapping);
+        bool toggle_feature_lab(int lab) {
+            return false;
+        }
+
+        void mark_feature_by_lab(int lab) {
+
+        }
+
 
         Camera            *camera_;
         MotionModel       *motion_model_;
@@ -34,7 +43,7 @@ namespace depth_cam_ekf {
         PartFeatureModel  *part_feature_model_;
 
         FrameGrabber      *frame_grabber_;
-        // GraphicTool       *graphic_tool_;
+        GraphicTool       *graphic_tool_;
         //
         // Kalman            *kalman_;
 

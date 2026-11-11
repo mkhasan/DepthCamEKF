@@ -5,6 +5,7 @@
 
 #include  "Params.h"
 #include "DepthCamSLAM.h"
+
 #include <pangolin/pangolin.h>
 #include <string>
 
@@ -23,12 +24,42 @@ depth_cam_ekf::DepthCamSLAM::DepthCamSLAM() :
         part_feature_model_ = nullptr;
 
         frame_grabber_ = nullptr;
-        // graphic_tool_ = NULL;
+        graphic_tool_ = nullptr;
         //
         // kalman_ = NULL;
     }
 
-depth_cam_ekf::DepthCamSLAM::~DepthCamSLAM() = default;
+depth_cam_ekf::DepthCamSLAM::~DepthCamSLAM() {
+    if (camera_ != nullptr)
+        delete  camera_;
+
+    if (motion_model_ != nullptr)
+        delete motion_model_;
+
+    if (full_feature_model_ != nullptr)
+        delete full_feature_model_;
+
+    if (part_feature_model_ != nullptr)
+        delete part_feature_model_;
+
+    if (frame_grabber_ != nullptr)
+        delete  frame_grabber_;
+
+    if (graphic_tool_ != nullptr)
+        delete  graphic_tool_;
+
+    // if (kalman_ != NULL)
+    //     delete  kalman_;
+
+    while (!feature_list_.empty())
+        feature_list_.pop_back();
+
+    while (!selected_feature_list_.empty())
+        selected_feature_list_.pop_back();
+
+    while (!trajectory_store_.empty())
+        trajectory_store_.pop_back();
+}
 
 void depth_cam_ekf::DepthCamSLAM::Init(const string &config_path) {
 
@@ -301,6 +332,129 @@ void depth_cam_ekf::DepthCamSLAM::Init(const string &config_path) {
     pangolin::Var<double> f4_xp_org_4("f4.xp_org_4", 0.0);
     pangolin::Var<double> f4_xp_org_5("f4.xp_org_5", 0.0);
     pangolin::Var<double> f4_xp_org_6("f4.xp_org_6", 0.0);
+
+    // Keep this order!
+    //  1. Camera
+    //  2. MotionModel
+    //  3. FullFeatureModel and PartFeatureModel
+    camera_ = new Camera();
+    camera_->SetCameraParameters(cam_width, cam_height, cam_fku, cam_fkv,
+                                cam_u0, cam_v0, cam_kd1, cam_sd);
+
+    motion_model_ = new MotionModel();
+
+    full_feature_model_ = new FullFeatureModel(2, 3, 3, camera_, motion_model_);
+    part_feature_model_ = new PartFeatureModel(2, 6, 6, camera_, motion_model_, 3);
+
+    // Initialise constant-like variables
+    kDeltaT_ = delta_t;
+    kNumberOfFeaturesToSelect_ = number_of_features_to_select;
+    kNumberOfFeaturesToKeepVisible_ = number_of_features_to_keep_visible;
+    kMaxFeaturesToInitAtOnce_ = max_features_to_init_at_once;
+    kMinLambda_ = min_lambda;
+    kMaxLambda_ = max_lambda;
+    kNumberOfParticles_ = number_of_particles;
+    kStandardDeviationDepthRatio_ = standard_deviation_depth_ratio;
+    kMinNumberOfParticles_ = min_number_of_particles;
+    kPruneProbabilityThreshold_ = prune_probability_threshold;
+    kErasePartiallyInitFeatureAfterThisManyAttempts_ = erase_partially_init_feature_after_this_many_attempts;
+
+    number_of_visible_features_ = 0;
+    minimum_attempted_measurements_of_feature_ = 10;
+    successful_match_fraction_ = 0.5;
+    next_free_label_ = 0;
+    marked_feature_label_ = -1;
+    total_state_size_ = motion_model_->kStateSize_;
+
+    xv_.resize(motion_model_->kStateSize_);
+    xv_ << state_rw_x, state_rw_y, state_rw_z,
+            state_qwr_w, state_qwr_x, state_qwr_y, state_qwr_z,
+            state_vw_x, state_vw_y, state_vw_z,
+            state_ww_x, state_ww_y, state_ww_z;
+
+    Pxx_.resize(motion_model_->kStateSize_, motion_model_->kStateSize_);
+    Pxx_ << state_pxx0_0,state_pxx0_1,state_pxx0_2,state_pxx0_3,
+            state_pxx0_4,state_pxx0_5,state_pxx0_6,state_pxx0_7,
+            state_pxx0_8,state_pxx0_9,state_pxx0_10,state_pxx0_11,state_pxx0_12,
+
+            state_pxx1_0,state_pxx1_1,state_pxx1_2,state_pxx1_3,
+            state_pxx1_4,state_pxx1_5,state_pxx1_6,state_pxx1_7,
+            state_pxx1_8,state_pxx1_9,state_pxx1_10,state_pxx1_11,state_pxx1_12,
+
+            state_pxx2_0,state_pxx2_1,state_pxx2_2,state_pxx2_3,
+            state_pxx2_4,state_pxx2_5,state_pxx2_6,state_pxx2_7,
+            state_pxx2_8,state_pxx2_9,state_pxx2_10,state_pxx2_11,state_pxx2_12,
+
+            state_pxx3_0,state_pxx3_1,state_pxx3_2,state_pxx3_3,
+            state_pxx3_4,state_pxx3_5,state_pxx3_6,state_pxx3_7,
+            state_pxx3_8,state_pxx3_9,state_pxx3_10,state_pxx3_11,state_pxx3_12,
+
+            state_pxx4_0,state_pxx4_1,state_pxx4_2,state_pxx4_3,
+            state_pxx4_4,state_pxx4_5,state_pxx4_6,state_pxx4_7,
+            state_pxx4_8,state_pxx4_9,state_pxx4_10,state_pxx4_11,state_pxx4_12,
+
+            state_pxx5_0,state_pxx5_1,state_pxx5_2,state_pxx5_3,
+            state_pxx5_4,state_pxx5_5,state_pxx5_6,state_pxx5_7,
+            state_pxx5_8,state_pxx5_9,state_pxx5_10,state_pxx5_11,state_pxx5_12,
+
+            state_pxx6_0,state_pxx6_1,state_pxx6_2,state_pxx6_3,
+            state_pxx6_4,state_pxx6_5,state_pxx6_6,state_pxx6_7,
+            state_pxx6_8,state_pxx6_9,state_pxx6_10,state_pxx6_11,state_pxx6_12,
+
+            state_pxx7_0,state_pxx7_1,state_pxx7_2,state_pxx7_3,
+            state_pxx7_4,state_pxx7_5,state_pxx7_6,state_pxx7_7,
+            state_pxx7_8,state_pxx7_9,state_pxx7_10,state_pxx7_11,state_pxx7_12,
+
+            state_pxx8_0,state_pxx8_1,state_pxx8_2,state_pxx8_3,
+            state_pxx8_4,state_pxx8_5,state_pxx8_6,state_pxx8_7,
+            state_pxx8_8,state_pxx8_9,state_pxx8_10,state_pxx8_11,state_pxx8_12,
+
+            state_pxx9_0,state_pxx9_1,state_pxx9_2,state_pxx9_3,
+            state_pxx9_4,state_pxx9_5,state_pxx9_6,state_pxx9_7,
+            state_pxx9_8,state_pxx9_9,state_pxx9_10,state_pxx9_11,state_pxx9_12,
+
+            state_pxx10_0,state_pxx10_1,state_pxx10_2,state_pxx10_3,
+            state_pxx10_4,state_pxx10_5,state_pxx10_6,state_pxx10_7,
+            state_pxx10_8,state_pxx10_9,state_pxx10_10,state_pxx10_11,state_pxx10_12,
+
+            state_pxx11_0,state_pxx11_1,state_pxx11_2,state_pxx11_3,
+            state_pxx11_4,state_pxx11_5,state_pxx11_6,state_pxx11_7,
+            state_pxx11_8,state_pxx11_9,state_pxx11_10,state_pxx11_11,state_pxx11_12,
+
+            state_pxx12_0,state_pxx12_1,state_pxx12_2,state_pxx12_3,
+            state_pxx12_4,state_pxx12_5,state_pxx12_6,state_pxx12_7,
+            state_pxx12_8,state_pxx12_9,state_pxx12_10,state_pxx12_11,state_pxx12_12;
+
+    // Add initial features
+    // Eigen::VectorXd y_temp(3), xp_temp(7);
+    //
+    // y_temp << f1_yi_x,f1_yi_y,f1_yi_z;
+    // xp_temp << f1_xp_org_0,f1_xp_org_1,f1_xp_org_2,f1_xp_org_3,f1_xp_org_4,f1_xp_org_5,f1_xp_org_6;
+    // AddNewKnownFeature(y_temp, xp_temp, f1_identifier);
+    //
+    // y_temp << f2_yi_x,f2_yi_y,f2_yi_z;
+    // xp_temp << f2_xp_org_0,f2_xp_org_1,f2_xp_org_2,f2_xp_org_3,f2_xp_org_4,f2_xp_org_5,f2_xp_org_6;
+    // AddNewKnownFeature(y_temp, xp_temp, f2_identifier);
+    //
+    // y_temp << f3_yi_x,f3_yi_y,f3_yi_z;
+    // xp_temp << f3_xp_org_0,f3_xp_org_1,f3_xp_org_2,f3_xp_org_3,f3_xp_org_4,f3_xp_org_5,f3_xp_org_6;
+    // AddNewKnownFeature(y_temp, xp_temp, f3_identifier);
+    //
+    // y_temp << f4_yi_x,f4_yi_y,f4_yi_z;
+    // xp_temp << f4_xp_org_0,f4_xp_org_1,f4_xp_org_2,f4_xp_org_3,f4_xp_org_4,f4_xp_org_5,f4_xp_org_6;
+    // AddNewKnownFeature(y_temp, xp_temp, f4_identifier);
+    //
+    // // Good for the last step, ready for capturing, drawing and processing
+    // kalman_ = new Kalman();
+    graphic_tool_ = new GraphicTool(this);
+    frame_grabber_ = new FrameGrabber();
+    frame_grabber_->Init(input_name, input_mode);
+
+    init_feature_search_region_defined_flag_ = false;
+    location_selected_flag_ = false;
+
+    srand48(0); // Always the same seed (pick a number), so deterministic
+
 
 }
 

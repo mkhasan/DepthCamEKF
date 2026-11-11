@@ -34,6 +34,9 @@ int main()
             cv::Mat::AUTO_STEP
         );
 
+        std::cout << "Width: " << image.cols << std::endl;
+        std::cout << "Height: " << image.rows << std::endl;
+        std::cout << "Type: " << image.type() << std::endl;
         cv::imshow("RGB", image);
 
         if (cv::waitKey(1) == 27)

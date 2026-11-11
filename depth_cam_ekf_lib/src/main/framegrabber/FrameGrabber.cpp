@@ -4,22 +4,23 @@
 
 #include "FrameGrabber.h"
 
+#include "FileGrabber.h"
 #include "UsbCamGrabber.h"
 
 using namespace std;
 
 depth_cam_ekf::FrameGrabber::FrameGrabber()
 {
-    //file_grabber_ = NULL;
-    usb_cam_grabber_ = NULL;
+    file_grabber_ = nullptr;
+    usb_cam_grabber_ = nullptr;
 }
 
 depth_cam_ekf::FrameGrabber::~FrameGrabber()
 {
-    // if (file_grabber_ != NULL)
-    //     delete  file_grabber_;
+    if (file_grabber_ != nullptr)
+         delete  file_grabber_;
 
-    if (usb_cam_grabber_ != NULL)
+    if (usb_cam_grabber_ != nullptr)
         delete  usb_cam_grabber_;
 
     while (!frame_buffer_.empty()) {
@@ -29,9 +30,16 @@ depth_cam_ekf::FrameGrabber::~FrameGrabber()
 
 
 void depth_cam_ekf::FrameGrabber::Init(const string &dev, const bool mode) {
-    assert(mode);
-    usb_cam_grabber_ = new UsbCamGrabber;
-    usb_cam_grabber_->Init(dev, this);
+
+    if (!mode) {
+        file_grabber_ = new FileGrabber;
+        file_grabber_->Init(dev, this);
+    }
+    else {
+        usb_cam_grabber_ = new UsbCamGrabber;
+        usb_cam_grabber_->Init(dev, this);
+    }
+
 }
 
 bool depth_cam_ekf::FrameGrabber::GetFrame(int frame_id, Frame *frame)

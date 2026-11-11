@@ -1,0 +1,6 @@
+
+# Ignore a specific folder
+build/
+
+# Ignore a file inside a folder
+depth_cam_ekf_lib/src/test/output.avi
