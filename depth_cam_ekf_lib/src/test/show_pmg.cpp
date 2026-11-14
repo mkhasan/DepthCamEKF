@@ -4,11 +4,15 @@
 
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <string>
 
-int main()
+using namespace std;
+int main(int argc, char *argv[])
 {
-    cv::Mat image = cv::imread("/home/mecasys/extension/MyProjects/SLAM/temp/realsense/frame_000124.pgm", cv::IMREAD_COLOR);
-    //cv::Mat image = cv::imread("/home/mecasys/extension/MyProjects/SLAM/temp/frames/frame_001485.pgm", cv::IMREAD_COLOR);
+
+    string path = argc > 1 ? argv[1] : "/home/mecasys/extension/MyProjects/SLAM/temp/realsense/frame_000124.pgm";
+    //cv::Mat image = cv::imread("/home/mecasys/extension/MyProjects/SLAM/temp/realsense/frame_000124.pgm", cv::IMREAD_COLOR);
+    cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
 
     if (image.empty())
     {

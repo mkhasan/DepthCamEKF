@@ -53,7 +53,7 @@ void depth_cam_ekf::FullFeatureModel::func_zeroedyi_and_dzeroedyi_by_dxp_and_dze
     // dzeroedyi_by_dr (3 * 3)
     // dzeroedyi_by_dq (3 * 4)
     Eigen::Matrix3d dzeroedyi_by_dr = RRW;
-    dzeroedyi_by_dr *= -1.0;
+    dzeroedyi_by_dr *= -1.0;    // jacobian of RRW*(yi - motion_model_->rRES_) wrt motion_model_->rRES_
 
     Eigen::Matrix<double, 3, 4> dzeroedyi_by_dqRW = dRq_times_a_by_dq(qRW, yWiminusrW);
     Eigen::Matrix<double, 3, 4> dzeroedyi_by_dq = dzeroedyi_by_dqRW * dqRW_by_dq;

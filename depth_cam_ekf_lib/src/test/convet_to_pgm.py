@@ -25,8 +25,9 @@ def video_to_pgm(video_file, output_dir):
         if not ret:
             break
 
+        resized = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_LINEAR)
         # Convert frame to grayscale
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray_frame = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
 
         # Generate output filename
         filename = os.path.join(
