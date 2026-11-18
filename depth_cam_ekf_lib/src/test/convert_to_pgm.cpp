@@ -20,6 +20,7 @@ int main(int argc, char** argv)
     }
 
     string videoFile = argv[1];
+
     string outputDir = argv[2];
 
     // Create output directory if it does not exist

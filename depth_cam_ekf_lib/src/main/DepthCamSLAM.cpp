@@ -462,3 +462,169 @@ bool depth_cam_ekf::DepthCamSLAM::GoOneStep(cv::Mat frame, bool save_trajectory,
     return true;
 }
 
+bool depth_cam_ekf::DepthCamSLAM::AutoInitialiseFeature(cv::Mat frame, const Eigen::Vector3d &u)
+{
+
+
+    // Project a point a "reasonable" distance forward from there along
+    // the optic axis
+    const double FEATURE_INIT_DEPTH_HYPOTHESIS = 2.5;
+
+    // First find a suitable patch
+    const double SUITABLE_PATCH_SCORE_THRESHOLD = 20000;
+
+    Eigen::VectorXd local_u(motion_model_->kControlSize_);
+
+    if (FindNonOverlappingRegion(u,
+                                init_feature_search_ustart_,
+                                init_feature_search_vstart_,
+                                init_feature_search_ufinish_,
+                                init_feature_search_vfinish_)) {
+
+        init_feature_search_region_defined_flag_ = true;
+
+        if (set_image_selection_automatically(frame,
+                                            init_feature_search_ustart_,
+                                            init_feature_search_vstart_,
+                                            init_feature_search_ufinish_,
+                                            init_feature_search_vfinish_) > SUITABLE_PATCH_SCORE_THRESHOLD) {
+        // Then initialise it
+            InitialiseFeature(frame);
+        }
+        else {
+            return  false;
+        }
+    }
+    else {
+        return  false;
+    }
+
+    return  true;
+}
+
+bool depth_cam_ekf::DepthCamSLAM::FindNonOverlappingRegion(Eigen::VectorXd local_u,
+                                        int &init_feature_search_ustart,
+                                        int &init_feature_search_vstart,
+                                        int &init_feature_search_ufinish,
+                                        int &init_feature_search_vfinish)
+{
+
+
+
+    // So, the limits of a "safe" region within which we can initialise
+    // features so that they end up staying within the screen
+    // (Making the approximation that the whole screen moves like the
+    // centre point)
+    motion_model_->func_xp(xv_);
+    int safe_feature_search_ustart = (kBoxSize_-1)/2 + 1;
+    int safe_feature_search_ufinish = (int) camera_->width_ - (kBoxSize_-1)/2 - 1;
+    int safe_feature_search_vstart = (kBoxSize_-1)/2 + 1;
+    int safe_feature_search_vfinish = camera_->height_ - (kBoxSize_-1)/2 - 1;
+
+    return  FindNonOverlappingRegionNoPredict(safe_feature_search_ustart,
+                                                safe_feature_search_vstart,
+                                                safe_feature_search_ufinish,
+                                                safe_feature_search_vfinish,
+                                                init_feature_search_ustart,
+                                                init_feature_search_vstart,
+                                                init_feature_search_ufinish,
+                                                init_feature_search_vfinish);
+}
+
+bool depth_cam_ekf::DepthCamSLAM::FindNonOverlappingRegionNoPredict(int safe_feature_search_ustart,
+                                                 int safe_feature_search_vstart,
+                                                 int safe_feature_search_ufinish,
+                                                 int safe_feature_search_vfinish,
+                                                 int &init_feature_search_ustart,
+                                                 int &init_feature_search_vstart,
+                                                 int &init_feature_search_ufinish,
+                                                 int &init_feature_search_vfinish)
+{
+    const int INIT_FEATURE_SEARCH_WIDTH = 80;
+    const int INIT_FEATURE_SEARCH_HEIGHT = 60;
+
+    // Within this, choose a random region
+    // Check that we've got some room for manouevre
+    if (safe_feature_search_ufinish - safe_feature_search_ustart > INIT_FEATURE_SEARCH_WIDTH &&
+        safe_feature_search_vfinish - safe_feature_search_vstart > INIT_FEATURE_SEARCH_HEIGHT) {
+
+        // Try a few times to get one that's not overlapping with any features
+        // we know about
+        const int NUMBER_OF_RANDOM_INIT_FEATURE_SEARCH_REGION_TRIES = 5;
+        const int FEATURE_SEPARATION_MINIMUM = 10;
+
+        // Build vectors of feature positions so we only have to work them out once
+        vector<double>  u_array;
+        vector<double>  v_array;
+
+        for (vector<Feature *>::const_iterator it = feature_list_.begin();
+            it != feature_list_.end(); ++it) {
+
+            if ((*it)->fully_initialised_flag_) {
+                full_feature_model_->func_hi_and_dhi_by_dxp_and_dhi_by_dyi((*it)->y_, motion_model_->xpRES_);
+
+                full_feature_model_->func_zeroedyigraphics_and_Pzeroedyigraphics(
+                    (*it)->y_,
+                    xv_,
+                    Pxx_,
+                    (*it)->Pxy_,
+                    (*it)->Pyy_);
+
+                if (full_feature_model_->zeroedyigraphicsRES_(2) > 0) {
+                    u_array.push_back(full_feature_model_->hiRES_(0));
+                    v_array.push_back(full_feature_model_->hiRES_(1));
+                }
+            }
+        }
+
+        int i = 0;
+
+        while (i < NUMBER_OF_RANDOM_INIT_FEATURE_SEARCH_REGION_TRIES) {
+
+            int u_offset = int((safe_feature_search_ufinish - safe_feature_search_ustart - INIT_FEATURE_SEARCH_WIDTH) * drand48());
+            int v_offset = int((safe_feature_search_vfinish - safe_feature_search_vstart - INIT_FEATURE_SEARCH_HEIGHT) * drand48());
+
+            init_feature_search_ustart = safe_feature_search_ustart + u_offset;
+            init_feature_search_ufinish = init_feature_search_ustart + INIT_FEATURE_SEARCH_WIDTH;
+            init_feature_search_vstart = safe_feature_search_vstart + v_offset;
+            init_feature_search_vfinish = init_feature_search_vstart + INIT_FEATURE_SEARCH_HEIGHT;
+
+            bool found_a_feature_in_region_flag = false;
+
+            // These arrays will be the same size
+            vector<double>::const_iterator uit = u_array.begin();
+            vector<double>::const_iterator vit = v_array.begin();
+
+            while(uit != u_array.end()) {
+                if (*uit >= init_feature_search_ustart - FEATURE_SEPARATION_MINIMUM &&
+                    *uit < init_feature_search_ufinish + FEATURE_SEPARATION_MINIMUM &&
+                    *vit >= init_feature_search_vstart - FEATURE_SEPARATION_MINIMUM &&
+                    *vit < init_feature_search_vfinish + FEATURE_SEPARATION_MINIMUM) {
+                found_a_feature_in_region_flag = true;
+                break;
+                }
+                ++uit;
+                ++vit;
+            }
+
+            // If no clashes, fine, leave while loop
+            // Else go round again
+            if (!found_a_feature_in_region_flag) {
+                break;
+            }
+
+            ++i;
+        }
+
+        if (i == NUMBER_OF_RANDOM_INIT_FEATURE_SEARCH_REGION_TRIES) {
+        return false;
+        }
+    }
+    else {
+        return  false;
+    }
+
+    return  true;
+}
+
+

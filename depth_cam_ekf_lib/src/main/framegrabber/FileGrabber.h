@@ -24,7 +24,7 @@ namespace depth_cam_ekf {
         void ProcessFiles(const boost::filesystem::path &directory);
         cv::Mat GetImageFile(const std::string &file_full_path);
 
-        std::vector<std::string>  files_vec_;
+        std::vector<std::pair<std::string, std::string>>  files_vec_;
         boost::thread   fg_thread_;
 
         bool            initialised_;

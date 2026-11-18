@@ -36,6 +36,21 @@ namespace depth_cam_ekf {
 
         }
 
+        bool AutoInitialiseFeature(cv::Mat frame, const Eigen::Vector3d &u);
+        bool FindNonOverlappingRegion(Eigen::VectorXd local_u,
+                                        int &init_feature_search_ustart,
+                                        int &init_feature_search_vstart,
+                                        int &init_feature_search_ufinish,
+                                        int &init_feature_search_vfinish);
+        bool FindNonOverlappingRegionNoPredict(int safe_feature_search_ustart,
+                                                int safe_feature_search_vstart,
+                                                int safe_feature_search_ufinish,
+                                                int safe_feature_search_vfinish,
+                                                int &init_feature_search_ustart,
+                                                int &init_feature_search_vstart,
+                                                int &init_feature_search_ufinish,
+                                                int &init_feature_search_vfinish);
+
 
         Camera            *camera_;
         MotionModel       *motion_model_;

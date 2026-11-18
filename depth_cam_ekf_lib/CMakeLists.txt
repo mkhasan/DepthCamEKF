@@ -41,6 +41,7 @@ add_executable(${PROJECT_NAME} src/main/Log.cpp
         src/main/support/math_util.cpp
         src/main/support/eigen_util.cpp
         src/main/support/pangolin_util.cpp
+        src/main/DepthCamFeatureModel.cpp
 
 )
 
@@ -78,5 +79,9 @@ target_link_directories(rs-imshow PUBLIC $ENV{REALSENSE_ROOT}/build/Release ${Op
 target_link_libraries(rs-imshow realsense2 ${OpenCV_LIBS})
 
 add_executable(realtime_data_collector src/test/realtime_data_collector.cpp ${IMGUI_SOURCES})
-target_link_directories(realtime_data_collector PUBLIC $ENV{REALSENSE_ROOT}/build/Release ${OpenCV_LIB_DIR})
-target_link_libraries(realtime_data_collector realsense2 ${OpenCV_LIBS} ${GLUT_LIBRARIES} glfw OpenGL::GL OpenGL::GLU)
+target_link_directories(realtime_data_collector PUBLIC $ENV{REALSENSE_ROOT}/build/Release ${OpenCV_LIB_DIR} ${Boost_LIBRARY_DIRS})
+target_link_libraries(realtime_data_collector realsense2 ${OpenCV_LIBS} ${GLUT_LIBRARIES} ${Boost_LIBRARIES} glfw OpenGL::GL OpenGL::GLU)
+
+add_executable(check_saved_depth_info src/test/check_saved_depth_info.cpp ${IMGUI_SOURCES})
+target_link_directories(check_saved_depth_info PUBLIC $ENV{REALSENSE_ROOT}/build/Release ${OpenCV_LIB_DIR} ${Boost_LIBRARY_DIRS})
+target_link_libraries(check_saved_depth_info realsense2 ${OpenCV_LIBS} ${GLUT_LIBRARIES} ${Boost_LIBRARIES} glfw OpenGL::GL OpenGL::GLU)

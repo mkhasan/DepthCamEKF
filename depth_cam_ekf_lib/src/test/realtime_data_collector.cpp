@@ -6,12 +6,18 @@
 // Copyright(c) 2019-24 RealSense, Inc. All Rights Reserved.
 
 #include <librealsense2/rs.hpp>
+#include <boost/filesystem.hpp>
+
 #include "example-imgui.hpp"
 
 
 #include "imgui_impl_glfw.h"
 #include <imgui_impl_opengl3.h>
 #include <realsense_imgui.h>
+
+#include <opencv2/opencv.hpp>
+#include <sys/stat.h>
+#include <sstream>
 
 /*
  This example introduces the concept of spatial stream alignment.
@@ -39,6 +45,10 @@ enum class direction
 
 // Forward definition of UI rendering, implemented below
 void render_slider(rect location, float* alpha, direction* dir);
+int get_video_dim(const rs2::pipeline_profile& profile, int& width, int& height);
+int write_distance_info(const std::string& filename,  float* values, int size);
+
+namespace fs = boost::filesystem;
 
 int main(int argc, char * argv[]) try
 {
@@ -49,6 +59,21 @@ int main(int argc, char * argv[]) try
     // std::string serial;
     // if( ! device_with_streams( ctx, { RS2_STREAM_COLOR, RS2_STREAM_DEPTH }, serial ) )
     //     return EXIT_SUCCESS;
+
+    if (argc < 2)
+    {
+        std::cout << "Usage: " << argv[0]
+             << " <output_directory>" << std::endl;
+        return -1;
+    }
+
+    std::string imageDir = (fs::path(argv[1]) / "frames").string();
+    std::string depthInfoDir = (fs::path(argv[1]) / "depth_info").string();
+
+    mkdir(imageDir.c_str(), 0755);
+    mkdir(depthInfoDir.c_str(), 0755);
+
+
 
     // Create and initialize GUI related objects
     window app(1280, 720, "RealSense Align Example"); // Simple window handling
@@ -66,8 +91,23 @@ int main(int argc, char * argv[]) try
     // if (!serial.empty())
     //     cfg. (serial);
     cfg.enable_stream(RS2_STREAM_DEPTH);
-    cfg.enable_stream(RS2_STREAM_COLOR);
-    pipe.start(cfg);
+    cfg.enable_stream(RS2_STREAM_COLOR
+        // ,640, 480
+        //  ,RS2_FORMAT_RGB8
+        //  ,30
+        );
+    auto profile = pipe.start(cfg);
+    int width, height;
+    if (get_video_dim(profile, width, height) != 0) {
+        std::cerr << "Failed to get vidceo dim " << std::endl;
+        return -1;
+    }
+
+    std::vector<float> depth_arr(width * height);
+
+
+
+
 
     // Define two align objects. One will be used to align
     // to depth viewport and the other to color.
@@ -77,8 +117,11 @@ int main(int argc, char * argv[]) try
     rs2::align align_to_color(RS2_STREAM_COLOR);
 
     float       alpha = 0.5f;               // Transparancy coefficient
-    direction   dir = direction::to_depth;  // Alignment direction
+    direction   dir = direction::to_color;  // Alignment direction
 
+
+    int count = 0;
+    int frameIndex = 0;
     while (app) // Application still alive?
     {
         // Using the align object, we block the application until a frameset is available
@@ -110,6 +153,9 @@ int main(int argc, char * argv[]) try
             // and then overlay color on top with transparancy
             depth_image.render(colorized_depth, { 0, 0, app.width(), app.height() });
             color_image.render(color, { 0, 0, app.width(), app.height() }, alpha);
+            // std::cout << "dim: " << color.get_width() << " X " << color.get_height() << std::endl;
+            // std::cout << "dim: " << depth.get_width() << " X " << depth.get_height() << std::endl;
+
         }
         else
         {
@@ -117,16 +163,75 @@ int main(int argc, char * argv[]) try
             // and then overlay depth image on top
             color_image.render(color, { 0, 0, app.width(), app.height() });
             depth_image.render(colorized_depth, { 0, 0, app.width(), app.height() }, 1 - alpha);
+            if (count >= 50) {
+                cv::Mat image(
+                    color.get_height(),
+                    color.get_width(),
+                    CV_8UC3,
+                    (void*)color.get_data(),
+                    cv::Mat::AUTO_STEP
+                );
+
+                cv::Mat grayFrame;
+                cv::cvtColor(image, grayFrame, CV_RGB2GRAY);
+
+                // Generate output filename
+                std::stringstream image_filename;
+                image_filename << imageDir << "/frame_"
+                         << std::setfill('0') << std::setw(6)
+                         << frameIndex << ".pgm";
+
+                // Save grayscale frame as PGM
+                if (!imwrite(image_filename.str(), grayFrame))
+                {
+                    std::cerr << "Error saving: "
+                         << image_filename.str() << std::endl;
+                    break;
+                }
+
+
+
+
+                float dist_to_center = depth.get_distance(width / 2, height / 2);
+                std::cout << "width: " << width << std::endl;
+                assert(width == depth.get_width());
+                assert(height == depth.get_height());
+                int index = 0;
+                for (int i=0; i < height; ++i ) {
+                    for (int j=0; j < width; ++j) {
+                        depth_arr[index++] = depth.get_distance(j, i);
+                    }
+
+
+                }
+
+                std::stringstream depth_info_filename;
+                depth_info_filename << depthInfoDir << "/depth_"
+                         << std::setfill('0') << std::setw(6)
+                         << frameIndex << ".dp";
+
+                if (write_distance_info(depth_info_filename.str().c_str(), &depth_arr[0], depth_arr.size()) != 0) {
+                    std::cerr << "Error writing depth info to " << depth_info_filename.str() << std::endl;
+                }
+
+                frameIndex++;
+
+
+            }
+            // std::cout << "dim: " << color.get_width() << " X " << color.get_height() << std::endl;
+            // std::cout << "dim: " << depth.get_width() << " X " << depth.get_height() << std::endl;
         }
 
         glColor4f(1.f, 1.f, 1.f, 1.f);
         glDisable(GL_BLEND);
 
+        count ++;
         // Render the UI:
         RsImGui::PushNewFrame();
         render_slider({ 15.f, app.height() - 60, app.width() - 30, app.height() }, &alpha, &dir);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     }
     RsImGui::PopNewFrame();
     return EXIT_SUCCESS;
@@ -179,4 +284,44 @@ void render_slider(rect location, float* alpha, direction* dir)
     }
 
     ImGui::End();
+}
+
+int get_video_dim(const rs2::pipeline_profile& profile, int& width, int& height) {
+
+    // Get active stream profiles
+    for (auto&& stream : profile.get_streams())
+    {
+        auto video = stream.as<rs2::video_stream_profile>();
+
+        if (video)
+        {
+            std::cout << "Stream: " << stream.stream_name() << std::endl;
+            std::cout << "Width: " << video.width() << std::endl;
+            std::cout << "Height: " << video.height() << std::endl;
+            std::cout << "FPS: " << video.fps() << std::endl;
+            std::cout << "Format: " << video.format() << std::endl;
+            width = video.width();
+            height = video.height();
+            return 0;
+        }
+
+    }
+    return -1;
+
+}
+
+int write_distance_info(const std::string& filename,  float* values, int size) {
+    std::ofstream file(filename);
+
+    if (!file.is_open())
+        return -1;
+
+    for (int i = 0; i < size; ++i)
+    {
+        file << values[i] << "\n";
+    }
+
+    file.close();
+
+    return 0;
 }
