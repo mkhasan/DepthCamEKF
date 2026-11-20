@@ -104,7 +104,7 @@ int main(int argc, char * argv[]) {
                                                 chk_display_3d_features,
                                                 chk_display_3d_uncertainties);
 
-        return 0;
+
         //=========================================================================
         // GET & PROCESS A NEW FRAME & CAMERA VIEW DISPLAY
         view_cam.ActivateScissorAndClear();

@@ -83,7 +83,7 @@ namespace depth_cam_ekf {
         FrameGrabber      *frame_grabber_;
         GraphicTool       *graphic_tool_;
         //
-        // Kalman            *kalman_;
+        //Kalman            *kalman_;
 
         Eigen::VectorXd xv_;
         Eigen::MatrixXd Pxx_;

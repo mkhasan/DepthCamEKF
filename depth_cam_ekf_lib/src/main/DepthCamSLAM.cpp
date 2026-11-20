@@ -340,7 +340,6 @@ void depth_cam_ekf::DepthCamSLAM::Init(const string &config_path) {
 
     feature_model_ = new DepthCamFeatureModel(3, 3, 3, camera_, motion_model_);
 
-    return;
     // Initialise constant-like variables
     kDeltaT_ = delta_t;
     kNumberOfFeaturesToSelect_ = number_of_features_to_select;
