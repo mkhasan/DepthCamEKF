@@ -35,6 +35,7 @@ depth_cam_ekf::GraphicTool::~GraphicTool()
 
 void depth_cam_ekf::GraphicTool::Init()
 {
+
     // Set up light and model surface properties
     GLfloat mat_ambient[] = {0.5, 0.5, 0.5, 1.0};
     GLfloat mat_specular[] = {1.0, 1.0, 1.0, 1.0};
@@ -42,7 +43,9 @@ void depth_cam_ekf::GraphicTool::Init()
     GLfloat light_position[] = {1.0, 100.0, 10.0, 0.0};
     GLfloat model_ambient[] = {0.5, 0.5, 0.5, 1.0};
 
+
     glClearColor(0.0, 0.0, 0.0, 0.0);
+
 
     // The material that the scene objects are made out of
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
@@ -52,6 +55,7 @@ void depth_cam_ekf::GraphicTool::Init()
     // The light model
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, model_ambient);
+
 
     // Activate some GL stuff
     glEnable(GL_LIGHTING);
@@ -84,13 +88,26 @@ void depth_cam_ekf::GraphicTool::Draw3dScene(const bool &chk_display_trajectory,
                                              const bool &chk_display_3d_features,
                                              const bool &chk_display_3d_uncertainties)
 {
+    if(!bInitialised) {
+        GLfloat mat_ambient[] = {0.5, 0.5, 0.5, 1.0};
+        GLfloat mat_specular[] = {1.0, 1.0, 1.0, 1.0};
+        GLfloat mat_shininess[] = {50.0};
+        GLfloat light_position[] = {1.0, 100.0, 10.0, 0.0};
+        GLfloat model_ambient[] = {0.5, 0.5, 0.5, 1.0};
+
+
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+    }
+    return;
     if(!bInitialised)
         Init();
+
 
     // save the current settings for selection
     chk_display_trajectory_ = chk_display_trajectory;
     chk_display_3d_features_ = chk_display_3d_features;
     chk_display_3d_uncertainties_ = chk_display_3d_uncertainties;
+
 
     // need to reset these to decrease axes accordingly
     xmin_ = xmax_ = ymin_ = ymax_ = zmin_ = zmax_ = 0.0;
@@ -268,14 +285,14 @@ void depth_cam_ekf::GraphicTool::DrawRawAR(cv::Mat frame,
         SetFeatureColour((*it)->selected_flag_, (*it)->successful_measurement_flag_, depth_cam_slam_ptr_->marked_feature_label_ == int((*it)->label_));
 
         if ((*it)->fully_initialised_flag_) {
-            depth_cam_slam_ptr_->full_feature_model_->func_hi_and_dhi_by_dxp_and_dhi_by_dyi(
+            depth_cam_slam_ptr_->feature_model_->func_hi_and_dhi_by_dxp_and_dhi_by_dyi(
                 (*it)->y_, depth_cam_slam_ptr_->motion_model_->xpRES_);
-            depth_cam_slam_ptr_->full_feature_model_->func_zeroedyigraphics_and_Pzeroedyigraphics(
+            depth_cam_slam_ptr_->feature_model_->func_zeroedyigraphics_and_Pzeroedyigraphics(
                 (*it)->y_, depth_cam_slam_ptr_->xv_, depth_cam_slam_ptr_->Pxx_, (*it)->Pxy_, (*it)->Pyy_);
 
             // Only draw 2D stuff if z>0 (or we get some nasty loop-around
             // drawing of features behind the camera)
-            if (depth_cam_slam_ptr_->full_feature_model_->zeroedyigraphicsRES_(2) > 0) {
+            if (depth_cam_slam_ptr_->feature_model_->zeroedyigraphicsRES_(2) > 0) {
             // Draw search regions
             if (chk_display_2d_search_regions) {
                 if ((*it)->selected_flag_) {
@@ -301,8 +318,8 @@ void depth_cam_ekf::GraphicTool::DrawRawAR(cv::Mat frame,
                 }
                 else {
                 // Otherwise current estimated position after update
-                draw_patch_x = depth_cam_slam_ptr_->full_feature_model_->hiRES_(0);
-                draw_patch_y = depth_cam_slam_ptr_->full_feature_model_->hiRES_(1);
+                draw_patch_x = depth_cam_slam_ptr_->feature_model_->hiRES_(0);
+                draw_patch_y = depth_cam_slam_ptr_->feature_model_->hiRES_(1);
                 }
 
                 DrawDescriptors(draw_patch_x, draw_patch_y, (*it)->patch_, (*it)->label_ + 1);
@@ -311,7 +328,7 @@ void depth_cam_ekf::GraphicTool::DrawRawAR(cv::Mat frame,
         }
         else {
             if (chk_display_2d_search_regions) {
-            Draw2DPartiallyInitialisedLineEllipses((*it));
+            //Draw2DPartiallyInitialisedLineEllipses((*it));
             }
         }
         }
@@ -676,62 +693,62 @@ void depth_cam_ekf::GraphicTool::DrawPatch(const double u, const double v, const
 // @param fp The particular feature to draw
 void depth_cam_ekf::GraphicTool::Draw2DPartiallyInitialisedLineEllipses(Feature *fp)
 {
-    // Find this particular feature in the list of information about
-    // partially-initalised features.
-    vector<FeatureInitInfo>::const_iterator feat;
-
-    for (feat = depth_cam_slam_ptr_->feature_init_info_vector_.begin();
-        feat != depth_cam_slam_ptr_->feature_init_info_vector_.end(); ++feat) {
-        if (feat->fp_ == fp)
-        break;
-    }
-
-    // Counter so we only draw every Nth ellipse
-    unsigned int  draw_counter = 1;
-
-    // Loop over different values of depth (lambda) to draw some ellipses
-    // First see how many to skip when drawing?
-    unsigned int particles_step;
-
-    particles_step = max(feat->particle_vector_.size() / kDrawNOverlappingEllipses_, FeatureInitInfo::ParticleVector::size_type(1));
-
-    for (vector<Particle>::const_iterator it = feat->particle_vector_.begin();
-        it != feat->particle_vector_.end(); ++it) {
-
-        if (draw_counter != particles_step) {
-        ++draw_counter;
-        }
-        else {
-        draw_counter = 1;
-
-        depth_cam_slam_ptr_->motion_model_->func_xp(depth_cam_slam_ptr_->xv_);
-
-        Eigen::VectorXd lambda_vector = it->lambda_;
-
-        depth_cam_slam_ptr_->part_feature_model_->func_hpi_and_dhpi_by_dxp_and_dhpi_by_dyi(
-                fp->y_, depth_cam_slam_ptr_->motion_model_->xpRES_, lambda_vector);
-
-        Eigen::VectorXd local_hpi = depth_cam_slam_ptr_->part_feature_model_->hpiRES_;
-        Eigen::MatrixXd local_dhpi_by_dyi = depth_cam_slam_ptr_->part_feature_model_->dhpi_by_dyiRES_;
-
-        depth_cam_slam_ptr_->motion_model_->func_dxp_by_dxv(depth_cam_slam_ptr_->xv_);
-
-        Eigen::MatrixXd local_dhpi_by_dxv =
-            depth_cam_slam_ptr_->part_feature_model_->dhpi_by_dxpRES_ *
-            depth_cam_slam_ptr_->motion_model_->dxp_by_dxvRES_;
-
-        fp->feature_model_->func_Ri(local_hpi);
-
-        Eigen::MatrixXd local_Ri = fp->feature_model_->RiRES_;
-
-        fp->feature_model_->func_Si(depth_cam_slam_ptr_->Pxx_, fp->Pxy_, fp->Pyy_,
-                                    local_dhpi_by_dxv, local_dhpi_by_dyi, local_Ri);
-
-        // Draw ellipses with brightness determined by probability
-        glColor4f(1.0f, 1.0f, 0.0f, 0.0f);
-        Draw2DCovariance(local_hpi(0), local_hpi(1), fp->feature_model_->SiRES_, kCovariancesNumberOfSigma_, 1.0);
-        }
-    }
+    // // Find this particular feature in the list of information about
+    // // partially-initalised features.
+    // vector<FeatureInitInfo>::const_iterator feat;
+    //
+    // for (feat = depth_cam_slam_ptr_->feature_init_info_vector_.begin();
+    //     feat != depth_cam_slam_ptr_->feature_init_info_vector_.end(); ++feat) {
+    //     if (feat->fp_ == fp)
+    //     break;
+    // }
+    //
+    // // Counter so we only draw every Nth ellipse
+    // unsigned int  draw_counter = 1;
+    //
+    // // Loop over different values of depth (lambda) to draw some ellipses
+    // // First see how many to skip when drawing?
+    // unsigned int particles_step;
+    //
+    // particles_step = max(feat->particle_vector_.size() / kDrawNOverlappingEllipses_, FeatureInitInfo::ParticleVector::size_type(1));
+    //
+    // for (vector<Particle>::const_iterator it = feat->particle_vector_.begin();
+    //     it != feat->particle_vector_.end(); ++it) {
+    //
+    //     if (draw_counter != particles_step) {
+    //     ++draw_counter;
+    //     }
+    //     else {
+    //     draw_counter = 1;
+    //
+    //     depth_cam_slam_ptr_->motion_model_->func_xp(depth_cam_slam_ptr_->xv_);
+    //
+    //     Eigen::VectorXd lambda_vector = it->lambda_;
+    //
+    //     depth_cam_slam_ptr_->part_feature_model_->func_hpi_and_dhpi_by_dxp_and_dhpi_by_dyi(
+    //             fp->y_, depth_cam_slam_ptr_->motion_model_->xpRES_, lambda_vector);
+    //
+    //     Eigen::VectorXd local_hpi = depth_cam_slam_ptr_->part_feature_model_->hpiRES_;
+    //     Eigen::MatrixXd local_dhpi_by_dyi = depth_cam_slam_ptr_->part_feature_model_->dhpi_by_dyiRES_;
+    //
+    //     depth_cam_slam_ptr_->motion_model_->func_dxp_by_dxv(depth_cam_slam_ptr_->xv_);
+    //
+    //     Eigen::MatrixXd local_dhpi_by_dxv =
+    //         depth_cam_slam_ptr_->part_feature_model_->dhpi_by_dxpRES_ *
+    //         depth_cam_slam_ptr_->motion_model_->dxp_by_dxvRES_;
+    //
+    //     fp->feature_model_->func_Ri(local_hpi);
+    //
+    //     Eigen::MatrixXd local_Ri = fp->feature_model_->RiRES_;
+    //
+    //     fp->feature_model_->func_Si(depth_cam_slam_ptr_->Pxx_, fp->Pxy_, fp->Pyy_,
+    //                                 local_dhpi_by_dxv, local_dhpi_by_dyi, local_Ri);
+    //
+    //     // Draw ellipses with brightness determined by probability
+    //     glColor4f(1.0f, 1.0f, 0.0f, 0.0f);
+    //     Draw2DCovariance(local_hpi(0), local_hpi(1), fp->feature_model_->SiRES_, kCovariancesNumberOfSigma_, 1.0);
+    //     }
+    // }
 }
 
 // Draw the search box for new features.

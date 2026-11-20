@@ -29,12 +29,15 @@ int main(int argc, char * argv[]) {
 
     set_level(Level::DEBUG);
     g_depth_cam_slam = new depth_cam_ekf::DepthCamSLAM();
+
     g_depth_cam_slam->Init("/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/data/DepthCamLib.cfg");
+
 
     pangolin::CreateWindowAndBind("DepthCamTest", 800, 480);
 #ifndef __APPLE__
     glutInit(&argc, argv);
 #endif
+
 
     pangolin::OpenGlRenderState view_state_3d(pangolin::ProjectionMatrix(g_depth_cam_slam->camera_->width_,
                                                                            g_depth_cam_slam->camera_->height_,
@@ -55,6 +58,7 @@ int main(int argc, char * argv[]) {
         .SetHandler(new depth_cam_ekf::Handler3D(view_state_3d, g_depth_cam_slam));
     pangolin::View  &view_cam     = pangolin::Display("view_cam").SetBounds(0.0, 0.5, 0.6, 1.0, 4./3.)
         .SetHandler(new depth_cam_ekf::Handler2D(g_depth_cam_slam));
+
 
     while (!pangolin::ShouldQuit()) {
         if (pangolin::DisplayBase().IsShown()) {
@@ -95,10 +99,12 @@ int main(int argc, char * argv[]) {
         // (3D Handler requires depth testing to be enabled)
         view_3d.ActivateScissorAndClear(view_state_3d);
 
+
         g_depth_cam_slam->graphic_tool_->Draw3dScene(chk_display_trajectory,
                                                 chk_display_3d_features,
                                                 chk_display_3d_uncertainties);
 
+        return 0;
         //=========================================================================
         // GET & PROCESS A NEW FRAME & CAMERA VIEW DISPLAY
         view_cam.ActivateScissorAndClear();
@@ -145,6 +151,7 @@ int main(int argc, char * argv[]) {
         //   right_panel2.Render();
         // });
         //if (pangolin::HadInput()) {
+
         g_next = false;
 
         // Buttons handling

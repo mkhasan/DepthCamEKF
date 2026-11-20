@@ -23,8 +23,8 @@ depth_cam_ekf::FrameGrabber::~FrameGrabber()
     if (usb_cam_grabber_ != nullptr)
         delete  usb_cam_grabber_;
 
-    while (!buffer_.empty()) {
-        buffer_.pop();
+    while (!frame_buffer_.empty()) {
+        frame_buffer_.pop();
     }
 }
 

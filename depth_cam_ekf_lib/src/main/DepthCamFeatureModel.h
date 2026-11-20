@@ -31,8 +31,8 @@ namespace depth_cam_ekf {
         double dqi_by_dqj(double qi, double qj, double qq);
 
         Eigen::VectorXd yiRES_;
-        Eigen::VectorXd dyi_by_dxpRES_;
-        Eigen::VectorXd dyi_by_dhdiRES_;
+        Eigen::MatrixXd dyi_by_dxpRES_;
+        Eigen::MatrixXd dyi_by_dhdiRES_;
 
         Eigen::VectorXd hiRES_;
         Eigen::VectorXd nuiRES_;

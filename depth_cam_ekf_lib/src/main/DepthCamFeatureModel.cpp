@@ -3,6 +3,9 @@
 //
 
 #include "DepthCamFeatureModel.h"
+#include "Log.h"
+
+using namespace Log;
 
 depth_cam_ekf::DepthCamFeatureModel::DepthCamFeatureModel(int measurement_size, int feature_state_size,
                                                   int graphics_state_size, Camera *camera,
@@ -17,6 +20,7 @@ depth_cam_ekf::DepthCamFeatureModel::DepthCamFeatureModel(int measurement_size, 
     dyi_by_dxpRES_.resize(feature_state_size,motion_model_->kPositionStateSize_);
     dyi_by_dxpRES_.setZero();
     dyi_by_dhdiRES_.resize(feature_state_size,measurement_size);
+
 
     hiRES_.resize(measurement_size);
     hiRES_.setZero();
