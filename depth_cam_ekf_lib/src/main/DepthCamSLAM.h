@@ -9,8 +9,7 @@
 #include "MotionModel.h"
 #include "FeatureModel.h"
 #include "Feature.h"
-#include "PartFeatureModel.h"
-#include "FullFeatureModel.h"
+#include "DepthCamFeatureModel.h"
 #include "FeatureInitInfo.h"
 #include "framegrabber/FrameGrabber.h"
 #include  "graphic/GraphicTool.h"
@@ -36,7 +35,7 @@ namespace depth_cam_ekf {
 
         }
 
-        bool AutoInitialiseFeature(cv::Mat frame, const Eigen::Vector3d &u);
+        bool AutoInitialiseFeature(cv::Mat frame, const std::vector<float>& depths, const Eigen::Vector3d &u);
         bool FindNonOverlappingRegion(Eigen::VectorXd local_u,
                                         int &init_feature_search_ustart,
                                         int &init_feature_search_vstart,
@@ -51,11 +50,35 @@ namespace depth_cam_ekf {
                                                 int &init_feature_search_ufinish,
                                                 int &init_feature_search_vfinish);
 
+        double set_image_selection_automatically(cv::Mat frame, const std::vector<float>& depths,
+                                                int ustart,
+                                                int vstart,
+                                                int ufinish,
+                                                int vfinish);
+
+        void find_best_patch_inside_region(const cv::Mat &image,
+                                            int *ubest,
+                                            int *vbest,
+                                            double *evbest,
+                                            const int BOXSIZE,
+                                            int ustart,
+                                            int vstart,
+                                            int ufinish,
+                                            int vfinish);
+        void get_median_depth_around_a_pixel(const std::vector<float>& depths, int width, int height, int uu, int vv, double& med_depth);
+
+        void find_eigenvalues(double A, double B, double C, double *eval1ptr,
+                        double *eval2ptr);
+
+        void InitialiseFeature(cv::Mat frame);
+
+        void copy_into_patch(const cv::Mat frame, cv::Mat patch);
+
+        void add_new_feature(cv::Mat patch, const Eigen::VectorXd &y);
 
         Camera            *camera_;
         MotionModel       *motion_model_;
-        FullFeatureModel  *full_feature_model_;
-        PartFeatureModel  *part_feature_model_;
+        DepthCamFeatureModel  *feature_model_;
 
         FrameGrabber      *frame_grabber_;
         GraphicTool       *graphic_tool_;
@@ -69,9 +92,7 @@ namespace depth_cam_ekf {
         std::vector<Feature *>   feature_list_;
         // selected_fm_list just lists those currently selected for measurement
         std::vector<Feature *>   selected_feature_list_;
-        // A separate list here of partially-initialised features with additional
-        // probabilistic information. These features are also in the main feature_list.
-        std::vector<FeatureInitInfo> feature_init_info_vector_;
+
 
         // For saving and drawing the camera trajectory
         std::vector<Eigen::Vector3d> trajectory_store_;
@@ -107,6 +128,7 @@ namespace depth_cam_ekf {
         double        successful_match_fraction_{};
 
         int           uu_{}, vv_{};
+        double dd_;
         bool          location_selected_flag_{};
 
         const int     kBoxSize_;

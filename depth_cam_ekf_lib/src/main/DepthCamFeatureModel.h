@@ -17,6 +17,7 @@ namespace depth_cam_ekf {
         ~DepthCamFeatureModel();
 
         void func_zeroedyi_and_dzeroedyi_by_dxp_and_dzeroedyi_by_dyi(const Eigen::VectorXd &yi, const Eigen::VectorXd &xp);
+        void func_yi_and_dyi_by_dxp_and_dyi_by_dhdi_and_Ri(const Eigen::VectorXd &hi, double depth, const Eigen::VectorXd &xp);
 
         int visibility_test(const Eigen::VectorXd &xp, const Eigen::VectorXd &yi, const Eigen::VectorXd &xp_orig, const Eigen::VectorXd &hi);
         double selection_score(const Eigen::MatrixXd &Si);
@@ -25,6 +26,13 @@ namespace depth_cam_ekf {
         // Fully_Initialised_Feature_Measurement_Model
         void func_hi_and_dhi_by_dxp_and_dhi_by_dyi(const Eigen::VectorXd &yi, const Eigen::VectorXd &xp);
         void func_nui(const Eigen::VectorXd &hi, const Eigen::VectorXd &zi);
+        Eigen::Matrix3d dvnorm_by_dv(Eigen::Vector3d v);
+        double dqi_by_dqi(double qi, double qq);
+        double dqi_by_dqj(double qi, double qj, double qq);
+
+        Eigen::VectorXd yiRES_;
+        Eigen::VectorXd dyi_by_dxpRES_;
+        Eigen::VectorXd dyi_by_dhdiRES_;
 
         Eigen::VectorXd hiRES_;
         Eigen::VectorXd nuiRES_;

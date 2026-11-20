@@ -3,8 +3,12 @@
 //
 
 #include "FileGrabber.h"
+#include <Log.h>
+
 
 using namespace std;
+using namespace Log;
+
 depth_cam_ekf::FileGrabber::FileGrabber()
 {
     initialised_ = false;
@@ -88,13 +92,20 @@ void depth_cam_ekf::FileGrabber::operator ()()
         if (frame_grabber_->IsFrameBufferFull()==false) {
             if (files_vec_.size() > (unsigned int)frame_id_) {
                 Frame frame;
-                string  file_full_path = files_vec_.at(frame_id_).first;
-
                 frame.frame_id = frame_id_;
-                frame.data = GetImageFile(file_full_path);
+                frame.data = GetImageFile(files_vec_.at(frame_id_).first);
+                frame.depths = GetDepthInfo(files_vec_.at(frame_id_).second);
+                if (frame.depths.size() == frame.data.rows*frame.data.cols) {
+                    frame_grabber_->SetFrame(frame);
+                }
+                else {
+                    log(Level::ERROR, "frame data dim mismatched ... row: %d col: %d depth-info-len: %d", frame.data.rows, frame.data.cols, frame.depths.size());
+                }
                 ++frame_id_;
 
-                frame_grabber_->SetFrame(frame);
+
+
+
             }
         }
         else {
@@ -106,4 +117,29 @@ void depth_cam_ekf::FileGrabber::operator ()()
 cv::Mat depth_cam_ekf::FileGrabber::GetImageFile(const string &file_full_path)
 {
     return  cv::imread(file_full_path, 0);
+}
+
+vector<float> depth_cam_ekf::FileGrabber::GetDepthInfo(const string& pathname) {
+    vector<float> depth_info;
+    std::ifstream file(pathname);
+
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open file!" << std::endl;
+        return {};
+    }
+
+
+    float value;
+
+    while (file >> value)
+    {
+        depth_info.push_back(value);
+    }
+
+    file.close();
+
+    return depth_info;
+
+
 }

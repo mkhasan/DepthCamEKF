@@ -96,7 +96,7 @@ void depth_cam_ekf::UsbCamGrabber::operator ()()
 
             ++frame_id_;
 
-            frame_grabber_->SetFrame(frame);
+            frame_grabber_->SetData(frame, {});
         }
         else {
             boost::this_thread::sleep(boost::posix_time::milliseconds(1));

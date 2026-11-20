@@ -23,8 +23,8 @@ depth_cam_ekf::FrameGrabber::~FrameGrabber()
     if (usb_cam_grabber_ != nullptr)
         delete  usb_cam_grabber_;
 
-    while (!frame_buffer_.empty()) {
-        frame_buffer_.pop();
+    while (!buffer_.empty()) {
+        buffer_.pop();
     }
 }
 
@@ -51,6 +51,7 @@ bool depth_cam_ekf::FrameGrabber::GetFrame(int frame_id, Frame *frame)
     }
 
     *frame = frame_buffer_.front();
+
     //  assert(frame->frame_id == frame_id);
     frame_buffer_.pop();
 

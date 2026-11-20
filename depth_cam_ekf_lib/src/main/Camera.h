@@ -19,13 +19,13 @@ namespace depth_cam_ekf {
         void SetCameraParameters(const int camera_width, const int camera_height,
                                 const double fku, const double fkv,
                                 const double u0, const double v0,
-                                const double kd1, const int sd);
+                                const double kd1, const int sd, const int depth_sd);
 
         Eigen::Vector2d Project(const Eigen::Vector3d &c);
         Eigen::Vector3d Unproject(const Eigen::Vector2d& image);
         Eigen::MatrixXd ProjectionJacobian();
         Eigen::MatrixXd UnprojectionJacobian();
-        Eigen::Matrix2d MeasurementNoise(const Eigen::Vector2d& h);
+        Eigen::Matrix3d MeasurementNoise(const Eigen::Vector2d& h);
 
         int               width_;
         int               height_;
@@ -34,6 +34,7 @@ namespace depth_cam_ekf {
         double            fkv_;
         Eigen::Vector2d   centre_;
         double            measurement_sd_;
+        double            depth_sd_;
         Eigen::Matrix3d   c_;
         Eigen::Matrix3d   c_inv_;
         Eigen::Vector3d   last_camera_;

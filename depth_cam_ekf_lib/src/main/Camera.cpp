@@ -18,7 +18,7 @@ depth_cam_ekf::Camera::~Camera()
 void depth_cam_ekf::Camera::SetCameraParameters(const int camera_width, const int camera_height,
                                                 const double fku, const double fkv,
                                                 const double u0, const double v0,
-                                                const double kd1, const int sd) {
+                                                const double kd1, const int sd, const int depth_sd) {
     width_ = camera_width;
     height_ = camera_height;
     fku_ = fku;
@@ -27,6 +27,7 @@ void depth_cam_ekf::Camera::SetCameraParameters(const int camera_width, const in
     centre_(1) = v0;
     kd1_ = kd1;
     measurement_sd_ = sd;
+    depth_sd_ = depth_sd;
 
     // Calculate GL versions of these (see explanation in header file)
     xW_ = width_ * kNear_ / fku_;
@@ -183,7 +184,7 @@ Eigen::MatrixXd depth_cam_ekf::Camera::UnprojectionJacobian()
 //
 // This is not constant across the image. It has the value of m_measurement_sd at
 // the centre, increasing with radial distance to 2*m_measurement_sd at the corners
-Eigen::Matrix2d depth_cam_ekf::Camera::MeasurementNoise(const Eigen::Vector2d& h)
+Eigen::Matrix3d depth_cam_ekf::Camera::MeasurementNoise(const Eigen::Vector2d& h)
 {
     // Distance of point we are considering from image centre
     const double distance = (h - centre_).norm();
@@ -195,10 +196,12 @@ Eigen::Matrix2d depth_cam_ekf::Camera::MeasurementNoise(const Eigen::Vector2d& h
     const double measurement_noise_variance = SD_image_filter_to_use * SD_image_filter_to_use;
 
     // RiRES is diagonal
-    Eigen::Matrix2d noise;
+    Eigen::Matrix3d noise;
 
     noise.setIdentity();
-    noise *= measurement_noise_variance;
+    noise(0, 0) *= measurement_noise_variance;
+    noise(1, 2) *= measurement_noise_variance;
+    noise(2, 2) *= (depth_sd_*depth_sd_);
 
     return noise;
 }

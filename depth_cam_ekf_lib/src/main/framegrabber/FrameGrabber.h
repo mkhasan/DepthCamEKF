@@ -19,6 +19,7 @@ namespace depth_cam_ekf {
     struct Frame {
         int     frame_id;
         cv::Mat data;
+        std::vector<float> depths;
     };
 
     class FileGrabber;
@@ -36,7 +37,7 @@ namespace depth_cam_ekf {
         bool IsFrameBufferFull();
 
     private:
-        std::queue<Frame>  frame_buffer_;
+        std::queue<Frame> frame_buffer_;
         boost::mutex  fg_mutex_;
 
         FileGrabber   *file_grabber_;

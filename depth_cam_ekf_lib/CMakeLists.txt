@@ -32,8 +32,6 @@ add_executable(${PROJECT_NAME} src/main/Log.cpp
         src/main/improc/SearchMultipleOverlappingEllipses.cpp
         src/main/MotionModel.cpp
         src/main/FeatureModel.cpp
-        src/main/PartFeatureModel.cpp
-        src/main/FullFeatureModel.cpp
         src/main/Feature.cpp
         src/main/FeatureInitInfo.cpp
         src/main/Camera.cpp

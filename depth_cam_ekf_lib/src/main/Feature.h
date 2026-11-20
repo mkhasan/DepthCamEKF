@@ -20,7 +20,7 @@ namespace depth_cam_ekf {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         // Constructor for partially-initialised features.
-        Feature(cv::Mat patch, const Eigen::VectorXd &h, DepthCamSLAM *depth_cam_slam);
+        Feature(cv::Mat patch, const Eigen::VectorXd &h, double depth, DepthCamSLAM *depth_cam_slam);
 
         // Constructor for known features. The different number of arguments
         // differentiates it from the constructor for partially-initialised features
@@ -32,10 +32,6 @@ namespace depth_cam_ekf {
         ~Feature();
 
         void Initialise();
-
-        void convert_from_partially_to_fully_initialised(const Eigen::VectorXd &lambda,
-                                                        const Eigen::MatrixXd &Plambda,
-                                                        DepthCamSLAM *depth_cam_slam);
 
         // The estimate of the feature state yi. (e.g. the feature's 3D position)
         Eigen::VectorXd y_;

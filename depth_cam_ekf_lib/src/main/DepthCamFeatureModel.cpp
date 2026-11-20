@@ -12,6 +12,12 @@ depth_cam_ekf::DepthCamFeatureModel::DepthCamFeatureModel(int measurement_size, 
     kMaximumAngleDifference_(M_PI * 45.0 / 180.0),
     kImageSearchBoundary_(20.0)
 {
+    yiRES_.resize(feature_state_size);
+    yiRES_.setZero();
+    dyi_by_dxpRES_.resize(feature_state_size,motion_model_->kPositionStateSize_);
+    dyi_by_dxpRES_.setZero();
+    dyi_by_dhdiRES_.resize(feature_state_size,measurement_size);
+
     hiRES_.resize(measurement_size);
     hiRES_.setZero();
     nuiRES_.resize(measurement_size);
@@ -20,6 +26,8 @@ depth_cam_ekf::DepthCamFeatureModel::DepthCamFeatureModel(int measurement_size, 
     dhi_by_dxpRES_.setZero();
     dhi_by_dyiRES_.resize(measurement_size,feature_state_size);
     dhi_by_dyiRES_.setZero();
+
+
 }
 
 depth_cam_ekf::DepthCamFeatureModel::~DepthCamFeatureModel()
@@ -164,4 +172,96 @@ void depth_cam_ekf::DepthCamFeatureModel::func_hi_and_dhi_by_dxp_and_dhi_by_dyi(
 void depth_cam_ekf::DepthCamFeatureModel::func_nui(const Eigen::VectorXd &hi, const Eigen::VectorXd &zi)
 {
     nuiRES_ = zi - hi;
+}
+
+void depth_cam_ekf::DepthCamFeatureModel::func_yi_and_dyi_by_dxp_and_dyi_by_dhdi_and_Ri(const Eigen::VectorXd &hi, double depth, const Eigen::VectorXd &xp) {
+    Eigen::Vector3d hLRi = camera_->Unproject(hi);
+
+    Eigen::Vector3d hLhatRi = hLRi;
+    hLhatRi.normalize();
+
+    Eigen::Matrix<double, 3, 3> dhLhatRi_by_dhLRi = dvnorm_by_dv(hLRi);
+
+
+    motion_model_->func_q(xp);
+    Eigen::Matrix3d RWR = motion_model_->qRES_.toRotationMatrix();
+    Eigen::Vector3d hLhatWi(RWR * hLhatRi);
+
+    // Extract rW from xp
+    motion_model_->func_r(xp);
+
+    // And form ypiRES
+    yiRES_ = motion_model_->rRES_ + depth*hLhatWi;
+
+    // dyi_by_dxp = (drWi_by_dr+depth*dhLhatWi_by_dr     drWi_by_dq+depth*dhLhatWi_by_dq    )
+
+    //             = (I+0              0+depth*dhLhatWi_by_dq             )
+
+
+    // hLhatWi = RWR * hLhatRi
+    // => dhLhatWi_by_dq = d/dq ( R(qWR) * hLhatRi)
+    Eigen::Matrix<double, 3, 4> dhLhatWi_by_dq = dRq_times_a_by_dq(motion_model_->qRES_, hLhatRi);
+
+
+    // Put dypi_by_dxp together
+    dyi_by_dxpRES_.setZero();
+    dyi_by_dxpRES_(0,0) = 1.0;
+    dyi_by_dxpRES_(1,1) = 1.0;
+    dyi_by_dxpRES_(2,2) = 1.0;
+    dyi_by_dxpRES_.block(0,3, 3, 4) = depth*dhLhatWi_by_dq;
+
+    // dyi_by_dhi = (drWi_by_dhi + depth * dhLhatWi_by_dhi    )
+    //             = (0        + depth * dhLhatWi_by_dhi      )
+
+    // hLhatWi = RWR * hLhatRi
+    // Need to work out derivative for this
+    // dhLhatWi_by_dhi = RWR * dhLhatRi_by_dhLRi * dhLRi_by_dhi
+
+    Eigen::MatrixXd dhLhatWi_by_dhi(3,2);
+    dhLhatWi_by_dhi = RWR * dhLhatRi_by_dhLRi * camera_->UnprojectionJacobian();
+
+    // dyi_by_depth = hLhatWi because yiRES_ + motion_model_->rRES_ + depth*hLhatWi;
+
+    dyi_by_dhdiRES_.setZero();
+    dyi_by_dhdiRES_.block(0, 0, 3, 2) = dhLhatWi_by_dhi;
+    dyi_by_dhdiRES_.block(0, 2, 3, 1) = hLhatWi;
+
+    // And construct Ri
+    func_Ri(hi);
+
+
+}
+
+Eigen::Matrix3d depth_cam_ekf::DepthCamFeatureModel::dvnorm_by_dv(Eigen::Vector3d v) {
+    Eigen::Matrix3d M;
+
+    double vv = v(0)*v(0) + v(1)*v(1) + v(2)*v(2);
+
+    // We can use dqi_by_dqi and dqi_by_dqj functions because they are the same
+    M << dqi_by_dqi(v(0), vv),
+        dqi_by_dqj(v(0), v(1), vv),
+        dqi_by_dqj(v(0), v(2), vv),
+
+        dqi_by_dqj(v(1), v(0), vv),
+        dqi_by_dqi(v(1), vv),
+        dqi_by_dqj(v(1), v(2), vv),
+
+        dqi_by_dqj(v(2), v(0), vv),
+        dqi_by_dqj(v(2), v(1), vv),
+        dqi_by_dqi(v(2), vv);
+
+    return M;
+}
+
+// Auxiliary functions used by dqnorm_by_dq()
+// Value of diagonal element of Jacobian
+double depth_cam_ekf::DepthCamFeatureModel::dqi_by_dqi(double qi, double qq)
+{
+    return (1 - qi*qi / (qq*qq)) / qq;
+}
+
+// Value of off-diagonal element of Jacobian
+double depth_cam_ekf::DepthCamFeatureModel::dqi_by_dqj(double qi, double qj, double qq)
+{
+    return -qi * qj / (qq*qq*qq);
 }

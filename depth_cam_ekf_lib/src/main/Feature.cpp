@@ -3,7 +3,7 @@
 //
 
 #include "Feature.h"
-#include "PartFeatureModel.h"
+#include "DepthCamFeatureModel.h"
 #include "DepthCamSLAM.h"
 
 #include <Eigen/Eigen>
@@ -12,12 +12,10 @@
 using namespace std;
 
 depth_cam_ekf::Feature::Feature(cv::Mat patch,
-                                const Eigen::VectorXd &h,
+                                const Eigen::VectorXd &h, double depth,
                                 DepthCamSLAM *depth_cam_slam)
 {
-    // Need to get FeatureModel before calling Initialise()
-    fully_initialised_flag_ = false;
-    feature_model_ = (PartFeatureModel *)depth_cam_slam->part_feature_model_;
+    feature_model_ = (DepthCamFeatureModel *)depth_cam_slam->feature_model_;
 
     Initialise();
 
@@ -42,79 +40,36 @@ depth_cam_ekf::Feature::Feature(cv::Mat patch,
 
     // Now ask the model to initialise the state vector and calculate Jacobians
     // so that I can go and calculate the covariance matrices
-    depth_cam_slam->part_feature_model_->func_ypi_and_dypi_by_dxp_and_dypi_by_dhi_and_Ri(h, depth_cam_slam->motion_model_->xpRES_);
+    depth_cam_slam->feature_model_->func_yi_and_dyi_by_dxp_and_dyi_by_dhdi_and_Ri(h, depth, depth_cam_slam->motion_model_->xpRES_);
 
     // State y
-    y_.resize(depth_cam_slam->part_feature_model_->ypiRES_.size());
-    y_ = depth_cam_slam->part_feature_model_->ypiRES_;
+    y_.resize(depth_cam_slam->feature_model_->yiRES_.size());
+    y_ = depth_cam_slam->feature_model_->yiRES_;
 
     // Temp_FS1 will store dypi_by_dxv
-    Eigen::MatrixXd Temp_FS1 = depth_cam_slam->part_feature_model_->dypi_by_dxpRES_ * depth_cam_slam->motion_model_->dxp_by_dxvRES_;
+    Eigen::MatrixXd Temp_FS1 = depth_cam_slam->feature_model_->dyi_by_dxpRES_ * depth_cam_slam->motion_model_->dxp_by_dxvRES_;
 
     // Pxy
     Pxy_ = depth_cam_slam->Pxx_ * Temp_FS1.transpose();
 
     // Pyy
     Pyy_ = Temp_FS1 * depth_cam_slam->Pxx_ * Temp_FS1.transpose() +
-            depth_cam_slam->part_feature_model_->dypi_by_dhiRES_ *
-            depth_cam_slam->part_feature_model_->RiRES_ *
-            depth_cam_slam->part_feature_model_->dypi_by_dhiRES_.transpose();
+            depth_cam_slam->feature_model_->dyi_by_dhdiRES_ *
+            depth_cam_slam->feature_model_->RiRES_ *
+            depth_cam_slam->feature_model_->dyi_by_dhdiRES_.transpose();
+
 
     // Covariances of this feature with others
-    vector<Feature *>::iterator it = depth_cam_slam->feature_list_.begin();
+    auto it = depth_cam_slam->feature_list_.begin();
 
     for (int j = 0; j < position_in_list_; ++j) {
-        Eigen::MatrixXd newPyjypi_to_store = (Temp_FS1 * (*it)->Pxy_).transpose();
-
-        matrix_block_list_.push_back(newPyjypi_to_store);
-
-        ++it;
-    }
-}
-
-// Constructor for known features. The different number of
-// arguments differentiates it from the constructor for partially-initialised features
-depth_cam_ekf::Feature::Feature(FeatureModel *feature_model,
-                                const Eigen::VectorXd &y, const Eigen::VectorXd &xp,
-                                const int label, const int total_state_size, const string &identifier,
-                                vector<Feature *> feature_list)
-{
-    // Need to get FeatureModel before calling Initialise()
-    fully_initialised_flag_ = true;
-    feature_model_ = (FullFeatureModel *)feature_model;
-
-    Initialise();
-
-    patch_ = cv::imread(identifier, 0);
-
-    label_ = label;
-    position_in_list_ = feature_list.size();  // Position of new feature in list
-    position_in_total_state_vector_ = total_state_size;
-
-    // Save the vehicle position where this feature was acquired
-    xp_org_.resize(xp.size());
-    xp_org_ = xp;
-
-    // Straighforward initialisation of state and covariances
-    y_.resize(y.size());
-    y_ = y;
-    Pxy_.resize(feature_model_->motion_model_->kStateSize_, feature_model_->kFeatureStateSize_);
-    Pxy_.setZero();
-    Pyy_.resize(feature_model_->kFeatureStateSize_, feature_model_->kFeatureStateSize_);
-    Pyy_.setZero();
-
-    vector<Feature *>::iterator it = feature_list.begin();
-
-    // Fill covariance cross-terms with zero
-    for (int i = 0; i < position_in_list_; ++i) {
-        Eigen::MatrixXd newPyjyi_to_store((*it)->feature_model_->kFeatureStateSize_,
-                                        feature_model_->kFeatureStateSize_);
-        newPyjyi_to_store.setZero();
+        Eigen::MatrixXd newPyjyi_to_store = (Temp_FS1 * (*it)->Pxy_).transpose();
 
         matrix_block_list_.push_back(newPyjyi_to_store);
 
         ++it;
     }
+
 }
 
 depth_cam_ekf::Feature::~Feature()

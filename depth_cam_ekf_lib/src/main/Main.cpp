@@ -26,6 +26,7 @@ int main(int argc, char * argv[]) {
 
     depth_cam_ekf::Frame  frame;
 
+
     set_level(Level::DEBUG);
     g_depth_cam_slam = new depth_cam_ekf::DepthCamSLAM();
     g_depth_cam_slam->Init("/home/mecasys/extension/MyProjects/SLAM/DepthCamEKF/depth_cam_ekf_lib/data/DepthCamLib.cfg");
