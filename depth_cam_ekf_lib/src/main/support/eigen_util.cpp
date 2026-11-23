@@ -4,6 +4,9 @@
 
 #include "eigen_util.h"
 
+
+
+using namespace std;
 void depth_cam_ekf::VectorUpdate(Eigen::VectorXd &dst, const Eigen::VectorXd &src, const int pos)
 {
     for (int i=0; i<src.size(); ++i) {
@@ -21,3 +24,12 @@ Eigen::VectorXd depth_cam_ekf::VectorExtract(const Eigen::VectorXd &src, const i
 
     return  dst;
 }
+
+string depth_cam_ekf::MatStr(const Eigen::MatrixXd &item) {
+    std::stringstream ss;
+    ss << item;
+    return ss.str();
+}
+
+
+

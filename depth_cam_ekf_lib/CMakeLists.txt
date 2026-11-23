@@ -40,6 +40,8 @@ add_executable(${PROJECT_NAME} src/main/Log.cpp
         src/main/support/eigen_util.cpp
         src/main/support/pangolin_util.cpp
         src/main/DepthCamFeatureModel.cpp
+        src/main/Kalman.cpp
+
 
 )
 

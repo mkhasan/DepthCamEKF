@@ -27,7 +27,7 @@ void depth_cam_ekf::Camera::SetCameraParameters(const int camera_width, const in
     centre_(1) = v0;
     kd1_ = kd1;
     measurement_sd_ = sd;
-    depth_sd_ = depth_sd;
+    depth_sd_ = (double)depth_sd/100.0;
 
     // Calculate GL versions of these (see explanation in header file)
     xW_ = width_ * kNear_ / fku_;
@@ -109,7 +109,7 @@ Eigen::Vector3d depth_cam_ekf::Camera::Unproject(const Eigen::Vector2d& image)
 }
 
 
-Eigen::MatrixXd depth_cam_ekf::Camera::ProjectionJacobian()
+    Eigen::MatrixXd depth_cam_ekf::Camera::ProjectionJacobian()
 {
     // Jacobians
     // Normal image measurement

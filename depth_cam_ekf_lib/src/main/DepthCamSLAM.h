@@ -13,6 +13,8 @@
 #include "FeatureInitInfo.h"
 #include "framegrabber/FrameGrabber.h"
 #include  "graphic/GraphicTool.h"
+#include "Kalman.h"
+
 
 #include <vector>
 #include <Eigen/Eigen>
@@ -20,13 +22,30 @@
 
 
 namespace depth_cam_ekf {
+    class Kalman;
+    // Array of the scores we've found for local use
+    class FeatureAndScore {
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        FeatureAndScore() {score = 0; fp = NULL;}
+        FeatureAndScore(double s, Feature *f) {score = s; fp = f;}
+        double  score;
+        Feature *fp;
+    };
     class DepthCamSLAM {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         DepthCamSLAM();
         ~DepthCamSLAM();
         void Init(const std::string &config_path);
-        bool GoOneStep(cv::Mat frame, bool save_trajectory, bool enable_mapping);
+        bool GoOneStep(cv::Mat frame, const std::vector<float>& depths, bool save_trajectory, bool enable_mapping);
+        void normalise_state();
+        void delete_bad_features();
+        void exterminate_features();
+        bool delete_feature();
+        void construct_total_covariance(Eigen::MatrixXd &M);
+        void fill_covariances(const Eigen::MatrixXd &M);
         bool toggle_feature_lab(int lab) {
             return false;
         }
@@ -34,6 +53,11 @@ namespace depth_cam_ekf {
         void mark_feature_by_lab(int lab) {
 
         }
+
+        int auto_select_n_features(int n);
+        bool select_feature(Feature *fp);
+        bool deselect_feature(Feature *fp);
+        void predict_single_feature_measurements(Feature *sfp);
 
         bool AutoInitialiseFeature(cv::Mat frame, const std::vector<float>& depths, const Eigen::Vector3d &u);
         bool FindNonOverlappingRegion(Eigen::VectorXd local_u,
@@ -76,6 +100,22 @@ namespace depth_cam_ekf {
 
         void add_new_feature(cv::Mat patch, const Eigen::VectorXd &y);
 
+        int make_measurements(cv::Mat image, const std::vector<float>& depths);
+        bool elliptical_search(const cv::Mat &image,
+                                const cv::Mat &patch,
+                                const Eigen::Vector2d centre,
+                                const Eigen::Matrix2d &PuInv,
+                                int *u,
+                                int *v,
+                                const int uBOXSIZE);
+        void successful_measurement_of_feature(Feature *sfp);
+        void failed_measurement_of_feature(Feature *sfp);
+        bool measure_feature(cv::Mat image, const std::vector<float>& depths, cv::Mat patch, Eigen::VectorXd &z,
+                               const Eigen::VectorXd &h, const Eigen::MatrixXd &S);
+        void construct_total_state(Eigen::VectorXd &V);
+        void construct_total_measurement_stuff(Eigen::VectorXd &nu_tot, Eigen::MatrixXd &dh_by_dx_tot, Eigen::MatrixXd &R_tot);
+        void fill_states(const Eigen::VectorXd &V);
+
         Camera            *camera_;
         MotionModel       *motion_model_;
         DepthCamFeatureModel  *feature_model_;
@@ -83,7 +123,7 @@ namespace depth_cam_ekf {
         FrameGrabber      *frame_grabber_;
         GraphicTool       *graphic_tool_;
         //
-        //Kalman            *kalman_;
+        Kalman            *kalman_;
 
         Eigen::VectorXd xv_;
         Eigen::MatrixXd Pxx_;
@@ -135,6 +175,7 @@ namespace depth_cam_ekf {
         const double  kNoSigma_;
         const double  kCorrThresh2_;
         const double  kCorrelationSigmaThreshold_;
+
     };
 }
 #endif //DEPTHCAMEKF_DEPTHCAMSLAM_H

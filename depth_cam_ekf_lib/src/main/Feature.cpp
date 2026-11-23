@@ -5,16 +5,19 @@
 #include "Feature.h"
 #include "DepthCamFeatureModel.h"
 #include "DepthCamSLAM.h"
+#include "Log.h"
 
 #include <Eigen/Eigen>
 #include <opencv2/opencv.hpp>
 
 using namespace std;
+using namespace Log;
 
 depth_cam_ekf::Feature::Feature(cv::Mat patch,
-                                const Eigen::VectorXd &h, double depth,
-                                DepthCamSLAM *depth_cam_slam)
-{
+                                const Eigen::VectorXd &h,
+                                DepthCamSLAM *depth_cam_slam) {
+    char buffer[1024] = {0,};
+    char temp[100] = {0,};
     feature_model_ = (DepthCamFeatureModel *)depth_cam_slam->feature_model_;
 
     Initialise();
@@ -40,7 +43,7 @@ depth_cam_ekf::Feature::Feature(cv::Mat patch,
 
     // Now ask the model to initialise the state vector and calculate Jacobians
     // so that I can go and calculate the covariance matrices
-    depth_cam_slam->feature_model_->func_yi_and_dyi_by_dxp_and_dyi_by_dhdi_and_Ri(h, depth, depth_cam_slam->motion_model_->xpRES_);
+    depth_cam_slam->feature_model_->func_yi_and_dyi_by_dxp_and_dyi_by_dhi_and_Ri(h, depth_cam_slam->motion_model_->xpRES_);
 
     // State y
     y_.resize(depth_cam_slam->feature_model_->yiRES_.size());
@@ -54,10 +57,18 @@ depth_cam_ekf::Feature::Feature(cv::Mat patch,
 
     // Pyy
     Pyy_ = Temp_FS1 * depth_cam_slam->Pxx_ * Temp_FS1.transpose() +
-            depth_cam_slam->feature_model_->dyi_by_dhdiRES_ *
+            depth_cam_slam->feature_model_->dyi_by_dhiRES_ *
             depth_cam_slam->feature_model_->RiRES_ *
-            depth_cam_slam->feature_model_->dyi_by_dhdiRES_.transpose();
+            depth_cam_slam->feature_model_->dyi_by_dhiRES_.transpose();
 
+    sprintf(buffer, "xx: ");
+    for (int i=0; i<13; ++i) {
+        sprintf(temp, "%.2f ", depth_cam_slam->Pxx_(i, i));
+        strcat(buffer, temp);
+    }
+    // log(Level::DEBUG, buffer);
+    // log(Level::DEBUG, "lable %d: yy: (%.2f, %.2f, %.2f)", label_, Pyy_(0, 0), Pyy_(1, 1), Pyy_(2, 2));
+    //log(Level::DEBUG, "lable %d: xx: (%.2f, %.2f, %.2f)", label_, depth_cam_slam->Pxx_(0, 0), depth_cam_slam->Pxx_(1, 1), depth_cam_slam->Pxx_(2, 2));
 
     // Covariances of this feature with others
     auto it = depth_cam_slam->feature_list_.begin();
@@ -69,6 +80,8 @@ depth_cam_ekf::Feature::Feature(cv::Mat patch,
 
         ++it;
     }
+
+    is_initialised_ = true;
 
 }
 

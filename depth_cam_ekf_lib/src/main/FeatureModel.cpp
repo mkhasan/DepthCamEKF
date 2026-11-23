@@ -4,6 +4,17 @@
 
 #include "FeatureModel.h"
 
+#include "Log.h"
+
+#include  <sstream>
+
+#include "support/eigen_util.h"
+
+
+using namespace std;
+using namespace Log;
+
+
 depth_cam_ekf::FeatureModel::FeatureModel(int measurement_size, int feature_state_size,
                                           int graphics_state_size, Camera *camera, MotionModel *motion_model) :
     kMeasurementSize_(measurement_size),
@@ -80,6 +91,12 @@ void depth_cam_ekf::FeatureModel::func_Si(const Eigen::MatrixXd &Pxx, const Eige
     SiRES_ += dhi_by_dyi * Pyiyi * dhi_by_dyi.transpose();
 
     SiRES_ += Ri;
+
+    //log(Level::DEBUG, "dhi_by_dyi: \n%s", MatStr(dhi_by_dyi).c_str());
+    // log(Level::DEBUG, "Pyiyi: \n%s", MatStr(Pyiyi).c_str());
+
+    //log(Level::DEBUG, "Ri: (%.2f, %.2f %2.f)", Ri(0, 0), Ri(1, 1), Ri(2, 2));
+
 }
 
 // In this case the graphics representation \f$ y_i^{graphics} \f$ and its
@@ -114,6 +131,7 @@ void depth_cam_ekf::FeatureModel::func_zeroedyigraphics_and_Pzeroedyigraphics(
 void depth_cam_ekf::FeatureModel::func_Ri(const Eigen::VectorXd &hi)
 {
     RiRES_ = camera_->MeasurementNoise(hi);
+    //log(Level::DEBUG, "RiRES_: (%.2f, %.2f %.9f)", RiRES_(0, 0), RiRES_(1, 1), RiRES_(2, 2));
 }
 
 Eigen::Matrix4d depth_cam_ekf::FeatureModel::dqbar_by_dq()

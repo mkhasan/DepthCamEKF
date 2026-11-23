@@ -4,6 +4,7 @@
 
 #include "DepthCamFeatureModel.h"
 #include "Log.h"
+#include "support/eigen_util.h"
 
 using namespace Log;
 
@@ -19,7 +20,7 @@ depth_cam_ekf::DepthCamFeatureModel::DepthCamFeatureModel(int measurement_size, 
     yiRES_.setZero();
     dyi_by_dxpRES_.resize(feature_state_size,motion_model_->kPositionStateSize_);
     dyi_by_dxpRES_.setZero();
-    dyi_by_dhdiRES_.resize(feature_state_size,measurement_size);
+    dyi_by_dhiRES_.resize(feature_state_size,measurement_size);
 
 
     hiRES_.resize(measurement_size);
@@ -101,7 +102,7 @@ int depth_cam_ekf::DepthCamFeatureModel::visibility_test(const Eigen::VectorXd &
 
     // Test the feature's not behind the camera (because projection
     // may do strange things)
-    if (zeroedyiRES_(2) <= 0) {
+    if (zeroedyiRES_(2) <= 0.01) {
         cant_see_flag |= kBehindCameraFail_;
     }
 
@@ -124,7 +125,7 @@ int depth_cam_ekf::DepthCamFeatureModel::visibility_test(const Eigen::VectorXd &
     double mod_hLWi = hLWi.norm();
     double mod_hLWi_orig = hLWi_orig.norm();
 
-    double length_ratio = mod_hLWi / mod_hLWi_orig;
+    double length_ratio = mod_hLWi / (mod_hLWi_orig+0.001);
 
     if (length_ratio > kMaximumLengthRatio_ ||
         length_ratio < (1.0 / kMaximumLengthRatio_)) {
@@ -156,21 +157,28 @@ void depth_cam_ekf::DepthCamFeatureModel::func_hi_and_dhi_by_dxp_and_dhi_by_dyi(
     // (vector from camera to feature in robot frame)
     func_zeroedyi_and_dzeroedyi_by_dxp_and_dzeroedyi_by_dyi(yi, xp);
 
+
     // Project this into the image using our camera
     hiRES_.segment(0, 2) = camera_->Project(zeroedyiRES_);
     hiRES_(2) = zeroedyiRES_(2);
 
+    //log(Level::DEBUG, "hiRES_: \n%s", MatStr(hiRES_).c_str());
     // And ask the camera what the Jacobian of this projection was
-    Eigen::MatrixXd dhid_by_dzeroedyi(3,3);
+    Eigen::MatrixXd dhi_by_dzeroedyi(3,3);
     Eigen::Matrix<double, 1, 3> temp;
     temp << 0.0, 0.0, 1.0;
 
-    dhid_by_dzeroedyi.block(0, 0, 2, 3) = camera_->ProjectionJacobian();
-    dhid_by_dzeroedyi.block(2, 0, 1, 3) = temp;
+    dhi_by_dzeroedyi.block(0, 0, 2, 3) = camera_->ProjectionJacobian();
+    dhi_by_dzeroedyi.block(2, 0, 1, 3) = temp;
+
+    // log(Level::DEBUG, "zeroedyiRES_: \n%s", MatStr(zeroedyiRES_).c_str());
+    // log(Level::DEBUG, "dhi_by_dzeroedyi: \n%s", MatStr(dhi_by_dzeroedyi).c_str());
 
     // Form the required Jacobians
-    dhi_by_dxpRES_ = dhid_by_dzeroedyi * dzeroedyi_by_dxpRES_;
-    dhi_by_dyiRES_ = dhid_by_dzeroedyi * dzeroedyi_by_dyiRES_;
+    dhi_by_dxpRES_ = dhi_by_dzeroedyi * dzeroedyi_by_dxpRES_;
+    dhi_by_dyiRES_ = dhi_by_dzeroedyi * dzeroedyi_by_dyiRES_;
+    // log(Level::DEBUG, "dhi_by_dyi: \n%s", MatStr(dhi_by_dzeroedyi).c_str());
+    // log(Level::DEBUG, "dhi_by_dxpRES_: \n%s", MatStr(dhi_by_dxpRES_).c_str());
 }
 
 void depth_cam_ekf::DepthCamFeatureModel::func_nui(const Eigen::VectorXd &hi, const Eigen::VectorXd &zi)
@@ -178,8 +186,9 @@ void depth_cam_ekf::DepthCamFeatureModel::func_nui(const Eigen::VectorXd &hi, co
     nuiRES_ = zi - hi;
 }
 
-void depth_cam_ekf::DepthCamFeatureModel::func_yi_and_dyi_by_dxp_and_dyi_by_dhdi_and_Ri(const Eigen::VectorXd &hi, double depth, const Eigen::VectorXd &xp) {
-    Eigen::Vector3d hLRi = camera_->Unproject(hi);
+void depth_cam_ekf::DepthCamFeatureModel::func_yi_and_dyi_by_dxp_and_dyi_by_dhi_and_Ri(const Eigen::VectorXd &hi, const Eigen::VectorXd &xp) {
+    Eigen::Vector3d hLRi = camera_->Unproject(hi.segment(0,2));
+    const double depth = hi(2);
 
     Eigen::Vector3d hLhatRi = hLRi;
     hLhatRi.normalize();
@@ -221,17 +230,17 @@ void depth_cam_ekf::DepthCamFeatureModel::func_yi_and_dyi_by_dxp_and_dyi_by_dhdi
     // Need to work out derivative for this
     // dhLhatWi_by_dhi = RWR * dhLhatRi_by_dhLRi * dhLRi_by_dhi
 
-    Eigen::MatrixXd dhLhatWi_by_dhi(3,2);
-    dhLhatWi_by_dhi = RWR * dhLhatRi_by_dhLRi * camera_->UnprojectionJacobian();
+    Eigen::MatrixXd temp(3,2);
+    temp = RWR * dhLhatRi_by_dhLRi * camera_->UnprojectionJacobian();
 
     // dyi_by_depth = hLhatWi because yiRES_ + motion_model_->rRES_ + depth*hLhatWi;
 
-    dyi_by_dhdiRES_.setZero();
-    dyi_by_dhdiRES_.block(0, 0, 3, 2) = dhLhatWi_by_dhi;
-    dyi_by_dhdiRES_.block(0, 2, 3, 1) = hLhatWi;
+    dyi_by_dhiRES_.setZero();
+    dyi_by_dhiRES_.block(0, 0, 3, 2) = temp;
+    dyi_by_dhiRES_.block(0, 2, 3, 1) = hLhatWi;
 
     // And construct Ri
-    func_Ri(hi);
+    func_Ri(hi.segment(0,2));
 
 
 }

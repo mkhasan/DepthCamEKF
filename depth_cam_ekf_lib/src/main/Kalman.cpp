@@ -19,7 +19,7 @@ void depth_cam_ekf::Kalman::KalmanFilterPredict(DepthCamSLAM *depth_cam_slam, Ei
     // Make model calculations: results are stored in RES matrices
     depth_cam_slam->motion_model_->func_fv_and_dfv_by_dxv(depth_cam_slam->xv_, u,
                                                     depth_cam_slam->kDeltaT_);
-    depth_cam_slam->motion_model_->func_Q(depth_cam_slam->xv_, u, monoslamdepth_cam_slamkDeltaT_);
+    depth_cam_slam->motion_model_->func_Q(depth_cam_slam->xv_, u, depth_cam_slam->kDeltaT_);
 
     depth_cam_slam->xv_ = depth_cam_slam->motion_model_->fvRES_;
 

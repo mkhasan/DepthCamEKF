@@ -5,14 +5,17 @@
 
 #include  "Params.h"
 #include "DepthCamSLAM.h"
+#include "improc/improc.h"
+#include  "Log.h"
 
 #include <pangolin/pangolin.h>
 #include <string>
 
-
+#include "support/eigen_util.h"
 
 
 using namespace std;
+using namespace Log;
 
 depth_cam_ekf::DepthCamSLAM::DepthCamSLAM() :
         kBoxSize_(11), kNoSigma_(3.0), kCorrThresh2_(0.40),
@@ -439,7 +442,7 @@ void depth_cam_ekf::DepthCamSLAM::Init(const string &config_path) {
     // AddNewKnownFeature(y_temp, xp_temp, f4_identifier);
     //
     // // Good for the last step, ready for capturing, drawing and processing
-    // kalman_ = new Kalman();
+    kalman_ = new Kalman();
     graphic_tool_ = new GraphicTool(this);
     frame_grabber_ = new FrameGrabber();
     frame_grabber_->Init(input_name, input_mode);
@@ -452,7 +455,105 @@ void depth_cam_ekf::DepthCamSLAM::Init(const string &config_path) {
 
 }
 
-bool depth_cam_ekf::DepthCamSLAM::GoOneStep(cv::Mat frame, bool save_trajectory, bool enable_mapping) {
+bool depth_cam_ekf::DepthCamSLAM::GoOneStep(cv::Mat frame, const vector<float>& depths, bool save_trajectory, bool enable_mapping) {
+
+    location_selected_flag_ = false;  // Equivalent to robot->nullify_image_selection()
+    init_feature_search_region_defined_flag_ = false;
+
+    // Control vector of accelerations
+    Eigen::Vector3d u;
+    u.setZero();
+
+    if (feature_list_.size() > 0) {
+        //const auto& it = feature_list_.begin();
+        for (auto& feature : feature_list_) {
+            log(Level::DEBUG, "label: %d, location: (%.2f %.2f %.2f)", feature->label_, feature->y_(0), feature->y_(1), feature->y_(2));
+        }
+        //log(Level::DEBUG, "label: %d yy: (%.2f, %.2f, %.2f)", feature_list_[0]->label_, feature_list_[0]->Pyy_(0, 0), feature_list_[0]->Pyy_(1, 1), feature_list_[0]->Pyy_(2, 2));
+        //log(Level::DEBUG, "lable %d: S: (%.2f, %.2f %.2f)", (*it)->label_, (*it)->S_(0, 0), (*it)->S_(1, 1), (*it)->S_(2, 2));
+        //log(Level::DEBUG, "lebel: %d Pxy_: \n%s", (*it)->label_, MatStr((*it)->Pxy_).c_str());
+        //log(Level::DEBUG, "lebel: Pxx: \n%s", MatStr(Pxx_).c_str());
+
+    }
+    // for (auto& feature : feature_list_) {
+    //     log(Level::DEBUG, "lable: %d yy: (%.2f, %.2f, %.2f)", feature->label_, feature->Pyy_(0, 0), feature->Pyy_(1, 1), feature->Pyy_(2, 2));
+    // }
+
+
+    // Record the current position so that I can estimate velocity
+    // (We can guarantee that the state vector has position; we can't guarantee
+    // that it has velocity.)
+    motion_model_->func_xp(xv_);
+
+    Eigen::Vector3d prev_xp_pos;
+    prev_xp_pos << motion_model_->xpRES_(0),motion_model_->xpRES_(1),motion_model_->xpRES_(2);
+
+    //cout << "pos: " << motion_model_->xpRES_(0) << " " << motion_model_->xpRES_(1) << " " << motion_model_->xpRES_(2) << endl;
+    log(Level::DEBUG, "pos: %s\n quaternion: %s", MatStr(motion_model_->xpRES_.segment(0, 3).reshaped(1,3)).c_str()
+        , MatStr(motion_model_->xpRES_.segment(3,4).reshaped(1,4)).c_str());
+    // Prediction step
+    kalman_->KalmanFilterPredict(this, u);
+
+
+
+    number_of_visible_features_ = auto_select_n_features(kNumberOfFeaturesToSelect_);
+
+
+    if (selected_feature_list_.size() != 0) {
+        log(Level::DEBUG, "selected_feature_list_.size(): %d", selected_feature_list_.size());
+        // Calls function in control_general.cc
+        make_measurements(frame, depths);
+
+        if (successful_measurement_vector_size_ != 0) {
+            log(Level::DEBUG, "updating states");
+            kalman_->KalmanFilterUpdate(this);
+
+            normalise_state();
+        }
+
+    }
+
+
+    delete_bad_features();
+
+    // Let's enforce symmetry of covariance matrix...
+    // Add to transpose and divide by 2
+    Eigen::MatrixXd Pxx(total_state_size_, total_state_size_);
+    construct_total_covariance(Pxx);
+
+
+    Eigen::MatrixXd PxxT = Pxx.transpose();
+    Pxx = Pxx * 0.5 + PxxT * 0.5;
+    fill_covariances(Pxx);
+
+    // Look at camera speed estimate
+    // Get the current position and estimate the speed from it
+    motion_model_->func_xp(xv_);
+
+    Eigen::Vector3d xp_pos, velocity;
+
+    xp_pos << motion_model_->xpRES_(0), motion_model_->xpRES_(1), motion_model_->xpRES_(2);
+    velocity = (xp_pos - prev_xp_pos) / kDeltaT_;
+
+    double speed = sqrt(velocity(0)*velocity(0) + velocity(1)*velocity(1) + velocity(2)*velocity(2));
+
+    if (enable_mapping) {
+        if (number_of_visible_features_ < kNumberOfFeaturesToKeepVisible_) {
+            AutoInitialiseFeature(frame, depths, u);
+        }
+    }
+
+
+
+    // if (save_trajectory) {
+    //     trajectory_store_.push_back(motion_model_->rRES_);
+    //     if (trajectory_store_.size() > 1000) {
+    //         trajectory_store_.erase(trajectory_store_.begin());
+    //     }
+    // }
+    //cout << xv_(0) << " " << xv_(1) << " " << xv_(2) << endl;
+
+
     return true;
 }
 
@@ -484,6 +585,7 @@ bool depth_cam_ekf::DepthCamSLAM::AutoInitialiseFeature(cv::Mat frame, const vec
                                             init_feature_search_vfinish_) > SUITABLE_PATCH_SCORE_THRESHOLD) {
         // Then initialise it
             InitialiseFeature(frame);
+            //log(Level::DEBUG, "# of features: %d", feature_list_.size());
         }
         else {
             return  false;
@@ -554,7 +656,7 @@ bool depth_cam_ekf::DepthCamSLAM::FindNonOverlappingRegionNoPredict(int safe_fea
         for (vector<Feature *>::const_iterator it = feature_list_.begin();
             it != feature_list_.end(); ++it) {
 
-            if ((*it)->fully_initialised_flag_) {
+            if ((*it)->is_initialised_) {
                 feature_model_->func_hi_and_dhi_by_dxp_and_dhi_by_dyi((*it)->y_, motion_model_->xpRES_);
 
                 feature_model_->func_zeroedyigraphics_and_Pzeroedyigraphics(
@@ -644,6 +746,7 @@ double depth_cam_ekf::DepthCamSLAM::set_image_selection_automatically(cv::Mat fr
     if (dd_ < 0.01) {
         evbest = 0;
     }
+    //log(Level::DEBUG, "value: %.4f", evbest);
     location_selected_flag_ = true;
 
     return evbest;
@@ -813,7 +916,9 @@ void depth_cam_ekf::DepthCamSLAM::InitialiseFeature(cv::Mat frame)
     cv::Mat patch(kBoxSize_, kBoxSize_, frame.type());
     copy_into_patch(frame, patch);
 
+
     add_new_feature(patch, z);
+    log(Level::DEBUG, "feacher added with values (%d %d %.2f)", uu_, vv_, dd_);
 
 
 }
@@ -836,7 +941,7 @@ void depth_cam_ekf::DepthCamSLAM::copy_into_patch(const cv::Mat frame, cv::Mat p
 
 void depth_cam_ekf::DepthCamSLAM::add_new_feature(
     cv::Mat patch, const Eigen::VectorXd &y) {
-    Feature *nf = new Feature(patch, y.segment(0,2), y(2), this);
+    Feature *nf = new Feature(patch, y, this);
 
     feature_list_.push_back(nf);
     total_state_size_ += feature_model_->kFeatureStateSize_;
@@ -844,15 +949,19 @@ void depth_cam_ekf::DepthCamSLAM::add_new_feature(
 }
 
 void depth_cam_ekf::DepthCamSLAM::get_median_depth_around_a_pixel(const vector<float>& depths, int width, int height, int uu, int vv, double& med_depth) {
-    const int BOX_LEN = 10;
+    const int BOX_SIZE = 10;
     const int MAX_DEPTH = 5.0;
     const int MIN_DEPTH = 0.0;
     assert(depths.size() == width*height);
-    assert (uu > BOX_LEN && uu < width-BOX_LEN && vv > BOX_LEN && vv < height-BOX_LEN);
+    //assert (uu > BOX_SIZE && uu < width-BOX_SIZE && vv > BOX_SIZE && vv < height-BOX_SIZE);
+    if (uu <= BOX_SIZE || uu >= width-BOX_SIZE || vv <= BOX_SIZE || vv >= height-BOX_SIZE) {
+        med_depth = 0;
+        return;
+    }
 
     vector<float> sample;
-    for (int i=-BOX_LEN; i<BOX_LEN; ++i) {
-        for (int j=-BOX_LEN; j<BOX_LEN; ++j) {
+    for (int i=-BOX_SIZE; i<BOX_SIZE; ++i) {
+        for (int j=-BOX_SIZE; j<BOX_SIZE; ++j) {
             int x = uu + i;
             int y = vv + j;
             sample.push_back(depths[y*width + x]);
@@ -866,5 +975,578 @@ void depth_cam_ekf::DepthCamSLAM::get_median_depth_around_a_pixel(const vector<f
     }
     else {
         med_depth = 0;
+    }
+}
+
+// Automatically select the n features with the best selection scores. For each
+// feature, this predicts their location and calls
+// Feature_Measurement_Model::selection_score(), selecting the n with the best
+// score.
+// @returns the number of visible features.
+int depth_cam_ekf::DepthCamSLAM::auto_select_n_features(int n)
+{
+    int cant_see_flag;    // Flag which we will set to 0 if a feature is
+                            // visible and various other values if it isn't
+
+    // Deselect all features
+    while (selected_feature_list_.size() != 0)
+        deselect_feature(*selected_feature_list_.begin());
+
+    // Have vector of up to n scores; highest first
+    vector<FeatureAndScore> feature_and_score_vector;
+
+    vector<Feature *>::iterator it;
+
+    for (it = feature_list_.begin(); it != feature_list_.end(); ++it) {
+        if ((*it)->is_initialised_) {
+            predict_single_feature_measurements(*it);
+
+            // See if the feature is visible
+            cant_see_flag = (*it)->feature_model_->visibility_test(motion_model_->xpRES_,
+                                                                    (*it)->y_, (*it)->xp_org_, (*it)->h_);
+
+            // Feature has passed visibility tests
+            if (cant_see_flag == 0) {
+                double score = (*it)->feature_model_->selection_score((*it)->feature_model_->SiRES_);
+
+                FeatureAndScore fas(score, (*it));
+
+                bool already_added = false;
+
+                for (vector<FeatureAndScore>::iterator fasit = feature_and_score_vector.begin();
+                    fasit != feature_and_score_vector.end(); ++fasit) {
+
+                    if (score > (*fasit).score) {
+                        // Insert new feature before old one it trumps
+                        feature_and_score_vector.insert(fasit, fas);
+                        already_added = true;
+                        break;
+                    }
+                }
+
+                if (!already_added)
+                    feature_and_score_vector.push_back(fas);
+            }
+        }
+    }
+
+
+    // See what we've got
+    int n_actual = 0;
+
+    if (feature_and_score_vector.size() == 0) {
+        return 0;
+    }
+
+
+    for (vector<FeatureAndScore>::iterator fasit = feature_and_score_vector.begin();
+        fasit != feature_and_score_vector.end(); ++fasit) {
+        if ((*fasit).score == 0.0 || n_actual == n) {
+
+            return  feature_and_score_vector.size();
+        }
+
+        select_feature((*fasit).fp);
+        ++n_actual;
+
+    }
+
+    // Return the number of visible features
+    return  feature_and_score_vector.size();
+}
+
+// Add this feature to the list for selection.
+// @param fp The feature to add.
+bool depth_cam_ekf::DepthCamSLAM::select_feature(Feature *fp)
+{
+    if (fp->selected_flag_ == true) {
+        return  true;
+    }
+
+    fp->selected_flag_ = true;
+
+    selected_feature_list_.push_back(fp);
+
+    return  true;
+}
+// Remove this feature from the list for selection.
+// @param fp The feature to remove.
+bool depth_cam_ekf::DepthCamSLAM::deselect_feature(Feature *fp)
+{
+    if (fp->selected_flag_ == false) {
+        return  true;
+    }
+
+    vector<Feature *>::iterator it;
+
+    for (it = selected_feature_list_.begin(); it != selected_feature_list_.end(); ++it) {
+        if (*it == fp)
+            break;
+    }
+
+    if (it != selected_feature_list_.end()) {
+        // We've found it so remove from list
+        (*it)->selected_flag_ = false;
+        selected_feature_list_.erase(it);
+        return  true;
+    }
+    else {
+        // We haven't found that feature in the selected list
+        return  false;
+    }
+}
+
+void depth_cam_ekf::DepthCamSLAM::predict_single_feature_measurements(Feature *sfp) {
+    motion_model_->func_xp(xv_);
+
+    feature_model_->func_hi_and_dhi_by_dxp_and_dhi_by_dyi(sfp->y_, motion_model_->xpRES_);
+
+    sfp->h_ = feature_model_->hiRES_;
+    sfp->dh_by_dy_ = feature_model_->dhi_by_dyiRES_;
+
+    motion_model_->func_dxp_by_dxv(xv_);
+
+    sfp->dh_by_dxv_ = feature_model_->dhi_by_dxpRES_ * motion_model_->dxp_by_dxvRES_;
+
+    feature_model_->func_Ri(sfp->h_.segment(0,2));
+
+    sfp->R_ = feature_model_->RiRES_;
+
+    feature_model_->func_Si(Pxx_, sfp->Pxy_, sfp->Pyy_, sfp->dh_by_dxv_,
+                                sfp->dh_by_dy_, sfp->R_);
+
+    sfp->S_ = feature_model_->SiRES_;
+
+    //log(Level::DEBUG, "label %d: dh_by_dy_: \n%s", sfp->label_, MatStr(sfp->dh_by_dxv_).c_str());
+
+}
+
+int depth_cam_ekf::DepthCamSLAM::make_measurements(cv::Mat image, const std::vector<float>& depths) {
+    int count = 0;
+
+    if (selected_feature_list_.size() == 0) {
+        return  0;
+    }
+
+    successful_measurement_vector_size_ = 0;
+
+
+    for (vector<Feature *>::const_iterator it = selected_feature_list_.begin();
+        it != selected_feature_list_.end(); ++it) {
+        // we need upper 2x2 matrix of S to find the pathch inside the image
+        if(measure_feature(image, depths, (*it)->patch_, (*it)->z_, (*it)->h_, (*it)->S_.block(0, 0, 2, 2)) == false) {
+            failed_measurement_of_feature((*it));
+            log(Level::WARN, "feature %d failed", (*it)->label_);
+        }
+        else {
+            successful_measurement_of_feature((*it));
+            ++count;
+        }
+    }
+
+
+
+    return  count;
+
+
+}
+
+void depth_cam_ekf::DepthCamSLAM::successful_measurement_of_feature(Feature *sfp) {
+    sfp->successful_measurement_flag_ = true;
+
+    successful_measurement_vector_size_ += feature_model_->kMeasurementSize_;
+
+    feature_model_->func_nui(sfp->h_, sfp->z_);
+    sfp->nu_ = feature_model_->nuiRES_;
+
+    ++sfp->successful_measurements_of_feature_;
+    ++sfp->attempted_measurements_of_feature_;
+}
+
+void depth_cam_ekf::DepthCamSLAM::failed_measurement_of_feature(Feature *sfp)
+{
+    sfp->successful_measurement_flag_ = false;
+    ++sfp->attempted_measurements_of_feature_;
+}
+
+bool depth_cam_ekf::DepthCamSLAM::measure_feature(cv::Mat image, const vector<float>& depths, cv::Mat patch, Eigen::VectorXd &z,
+                               const Eigen::VectorXd &h, const Eigen::MatrixXd &S)
+{
+    Eigen::LLT<Eigen::MatrixXd>  S_cholesky(S);
+    Eigen::MatrixXd S_L = S_cholesky.matrixL();
+    Eigen::MatrixXd S_Linv = S_L.inverse();
+    Eigen::MatrixXd S_inv = S_Linv.transpose() * S_Linv;
+
+
+    int  u_found, v_found;
+
+
+    if(elliptical_search(image, patch, h.segment(0,2), S_inv, &u_found, &v_found, kBoxSize_) != true) {
+        return  false;
+    }
+
+
+
+    double d_found = 0;
+    get_median_depth_around_a_pixel(depths, image.rows, image.cols, u_found, v_found, d_found);
+    //log(Level::INFO, "came here 0.525");
+    if (abs(d_found - h(2)) > 0.5) {        // allowing 0.5 meter difference
+        return false;
+    }
+
+
+
+
+    z(0) = (double)u_found;
+    z(1) = (double)v_found;
+    z(2) = (double)d_found;
+
+    //log(Level::DEBUG, "feature found at %.2f %.2f, %.2f", z(0), z(1), z(2));
+
+    return  true;
+}
+
+// Do a search for patch in image within an elliptical region. The
+// search region is parameterised an inverse covariance matrix (a distance of
+// NO_SIGMA is used). The co-ordinates returned are those of centre of the patch.
+// @param image The image to search
+// @param patch The patch  to search for
+// @param centre The centre of the search ellipse
+// @param PuInv The inverse covariance matrix to use
+// @param u The x-co-ordinate of the best patch location
+// @param v The y-co-ordinate of the best patch location
+// @param uBOXSIZE The size of the image patch (TODO: Shouldn't this be the same
+// as the size of patch?)
+// @returns <true> if the a good match is found (above CORRTHRESH2), <false>
+// otherwise
+bool depth_cam_ekf::DepthCamSLAM::elliptical_search(const cv::Mat &image,
+                                 const cv::Mat &patch,
+                                 const Eigen::Vector2d centre,
+                                 const Eigen::Matrix2d &PuInv,
+                                 int *u,
+                                 int *v,
+                                 const int uBOXSIZE)
+{
+    // We want to pass BOXSIZE as an unsigned int since it is,
+    // but if we use it in the if statements below then C++ casts the
+    // whole calculation to unsigned ints, so it is never < 0!
+    // Force it to get the right answer by using an int version of BOXSIZE
+    int BOXSIZE = uBOXSIZE;
+
+    // The dimensions of the bounding box of the ellipse we want to search in
+    // https://chatgpt.com/share/6aebd0fd-3190-83ec-a7ab-4f953a0c659a
+    int  halfwidth = (int)(kNoSigma_ / sqrt(PuInv(0,0) - PuInv(0,1) * PuInv(0,1) / PuInv(1,1)));
+    int  halfheight = (int)(kNoSigma_ / sqrt(PuInv(1,1) - PuInv(0,1) * PuInv(0,1) / PuInv(0,0)));
+
+    int ucentre = int(centre(0) + 0.5);
+    int vcentre = int(centre(1) + 0.5);
+
+    // Limits of search
+    int urelstart = -halfwidth;
+    int urelfinish = halfwidth;
+    int vrelstart = -halfheight;
+    int vrelfinish = halfheight;
+
+    // Check these limits aren't outside the image
+    if(ucentre + urelstart - (BOXSIZE-1) / 2 < 0)
+        urelstart = (BOXSIZE-1) / 2 - ucentre;
+
+    if(ucentre + urelfinish - (BOXSIZE-1) / 2 > int(image.size().width) - BOXSIZE)
+        urelfinish = image.size().width - BOXSIZE - ucentre + (BOXSIZE-1) / 2;
+
+    if(vcentre + vrelstart - (BOXSIZE-1) / 2 < 0)
+        vrelstart = (BOXSIZE-1) / 2 - vcentre;
+
+    if(vcentre + vrelfinish - (BOXSIZE-1) / 2 > int(image.size().height) - BOXSIZE)
+        vrelfinish = int(image.size().height) - BOXSIZE - vcentre + (BOXSIZE-1) / 2;
+
+    // Search counters
+    int urel, vrel;
+
+    double  corrmax = 1000000.0;
+    double  corr;
+
+    // For passing to and_correlate2_warning
+    double  sdpatch, sdimage;
+
+    // Do the search
+    for (urel = urelstart; urel <= urelfinish; ++urel) {
+        for (vrel = vrelstart; vrel <= vrelfinish; ++vrel) {
+            // X'P^-1X <= k^2
+            if(PuInv(0,0) * urel * urel + 2 * PuInv(0,1) * urel * vrel + PuInv(1,1) * vrel * vrel  <
+                kNoSigma_*kNoSigma_) {
+                corr = correlate2_warning(0, 0, BOXSIZE, BOXSIZE, ucentre + urel - (BOXSIZE - 1) / 2, vcentre + vrel - (BOXSIZE - 1) / 2, patch, image, &sdpatch, &sdimage);
+
+                if (corr <= corrmax) {
+                    if (sdpatch < kCorrelationSigmaThreshold_)
+                        ; // cout << "Low patch sigma." << endl;
+                    else if (sdimage < kCorrelationSigmaThreshold_)
+                        ; // cout << "Low image sigma." << endl;
+                    else {
+                        corrmax = corr;
+                        *u = urel + ucentre;
+                        *v = vrel + vcentre;
+                    }
+                }
+            }
+        }
+    }
+
+    if (corrmax > kCorrThresh2_) {
+        return  false;
+    }
+
+    return  true;
+}
+
+// https://chatgpt.com/share/6ada0ac6-f328-83ec-9e7f-59f013f42deb
+void depth_cam_ekf::DepthCamSLAM::normalise_state()
+{
+    // Normalising state:
+    //
+    // This deals with the case where the robot state needs normalising
+    // (e.g. if it contains a quaternion)
+    //
+    // We assume the feature states do not need normalising
+    motion_model_->func_xvnorm_and_dxvnorm_by_dxv(xv_);
+
+    // Change the state vector
+    xv_ = motion_model_->xvnormRES_;
+
+    // Change the vehicle state covariance
+    Pxx_ = motion_model_->dxvnorm_by_dxvRES_ * Pxx_ * motion_model_->dxvnorm_by_dxvRES_.transpose();
+
+    // Change the covariances between vehicle state and feature states
+    for (vector<Feature *>::iterator it = feature_list_.begin();
+        it != feature_list_.end(); ++it) {
+        (*it)->Pxy_ = motion_model_->dxvnorm_by_dxvRES_ * (*it)->Pxy_;
+    }
+}
+
+// Delete any features which are consistently failing measurements. Features are
+// deleted if there has been more than a certain number of attempts to match them
+// (set by Scene_Single::MINIMUM_ATTEMPTED_MEASUREMENTS_OF_FEATURE) and they have
+// been successfully matched on too few of those occasions (set by
+// Scene_Single::SUCCESSFUL_MATCH_FRACTION).
+void depth_cam_ekf::DepthCamSLAM::delete_bad_features() {
+    vector<Feature *>::iterator it;
+
+    for (it = feature_list_.begin(); it != feature_list_.end(); ++it) {
+        // First: test if this feature needs deleting
+        if((*it)->attempted_measurements_of_feature_ >= minimum_attempted_measurements_of_feature_ &&
+        double(((*it)->successful_measurements_of_feature_)) /
+        double(((*it)->attempted_measurements_of_feature_)) < successful_match_fraction_) {
+            (*it)->scheduled_for_termination_flag_ = true;
+            continue;
+        }
+    }
+
+    // Delete bad features
+    exterminate_features();
+}
+
+// Delete all features with scheduled_for_termination_flag set
+void depth_cam_ekf::DepthCamSLAM::exterminate_features()
+{
+    vector<Feature *>::iterator it;
+
+    for (it = feature_list_.begin(); it != feature_list_.end(); ) {
+
+        if ((*it)->scheduled_for_termination_flag_) {
+            vector<Feature *>::iterator it_to_delete = it;
+            ++it;
+
+            // We have to do something special if deleting the last feature
+            bool deleting_last_feature_flag = false;
+
+            if (it == feature_list_.end())
+                deleting_last_feature_flag = true;
+
+            // Save currently marked feature so we can mark this scheduled
+            // for termination feature (delete_feature deletes the marked feature)
+            int currently_marked_feature = marked_feature_label_;
+
+            // Unless it's the one we're about to delete
+            if (currently_marked_feature == (int)((*it_to_delete)->label_))
+                currently_marked_feature = -1;
+
+            mark_feature_by_lab((*it_to_delete)->label_);
+            delete_feature();
+
+            // Now re-mark currently marked feature
+            if (currently_marked_feature != -1)
+                mark_feature_by_lab(currently_marked_feature);
+
+            if (deleting_last_feature_flag) {
+                // jump out of loop
+                break;
+            }
+        }
+        else {
+            ++it;
+        }
+    }
+}
+
+// Delete the currently-marked feature. Features can be marked using
+// mark_feature_by_lab(). The function also frees up the identifier.
+bool depth_cam_ekf::DepthCamSLAM::delete_feature()
+{
+    if (marked_feature_label_ == -1) {
+        return  false;
+    }
+
+    vector<Feature *>::iterator it_to_delete;
+
+    for (it_to_delete = feature_list_.begin(); it_to_delete != feature_list_.end();
+        ++it_to_delete) {
+        if ((int)((*it_to_delete)->label_) == marked_feature_label_)
+            break;
+        }
+
+    if (it_to_delete == feature_list_.end()) {
+        return  false;
+    }
+
+    // Remove the covariance elements relating to this feature from the
+    // subsequent features
+    for (vector<Feature *>::iterator it = it_to_delete + 1;
+        it != feature_list_.end(); ++it) {
+
+        --(*it)->position_in_list_;
+        vector<Eigen::MatrixXd>::iterator target = (*it)->matrix_block_list_.begin() + (*it_to_delete)->position_in_list_;
+        (*it)->matrix_block_list_.erase(target);
+
+        (*it)->position_in_total_state_vector_ -= (*it_to_delete)->feature_model_->kFeatureStateSize_;
+        }
+
+    if ((*it_to_delete)->selected_flag_)
+        deselect_feature(*it_to_delete);
+
+    total_state_size_ -= (*it_to_delete)->feature_model_->kFeatureStateSize_;
+
+    // Delete extra data associated with this feature
+    delete  (*it_to_delete);
+    feature_list_.erase(it_to_delete);
+
+    marked_feature_label_ = -1;
+
+    return  true;
+}
+
+// Create the overall covariance matrix by concatenating the robot
+// covariance $P_{xx}$ and all the feature covariances $P_{xy_i}$, $P_{y_iy_i}$
+// and $P_{y_iy_j}$.
+// @param M The matrix to fill with the state
+void depth_cam_ekf::DepthCamSLAM::construct_total_covariance(Eigen::MatrixXd &M)
+{
+    M.block(0,0,Pxx_.rows(),Pxx_.cols()) = Pxx_;
+
+    int x_position = motion_model_->kStateSize_;
+
+    for (vector<Feature *>::iterator it = feature_list_.begin();
+        it != feature_list_.end(); ++it) {
+
+        int y_position = 0;
+
+        M.block(y_position,x_position,(*it)->Pxy_.rows(),(*it)->Pxy_.cols()) = (*it)->Pxy_;
+        M.block(x_position,y_position,(*it)->Pxy_.transpose().rows(),(*it)->Pxy_.transpose().cols()) = (*it)->Pxy_.transpose();
+
+        y_position += motion_model_->kStateSize_;
+
+        for (vector<Eigen::MatrixXd>::iterator itmat = (*it)->matrix_block_list_.begin();
+            itmat != (*it)->matrix_block_list_.end(); ++itmat) {
+
+            M.block(y_position,x_position,(*itmat).rows(),(*itmat).cols()) = (*itmat);
+            M.block(x_position,y_position,(*itmat).transpose().rows(),(*itmat).transpose().cols()) = (*itmat).transpose();
+
+            y_position += (*itmat).rows();
+            }
+
+        M.block(y_position,x_position,(*it)->Pyy_.rows(),(*it)->Pyy_.cols()) = (*it)->Pyy_;
+        x_position += (*it)->feature_model_->kFeatureStateSize_;
+    }
+}
+
+void depth_cam_ekf::DepthCamSLAM::fill_covariances(const Eigen::MatrixXd &M)
+{
+    Pxx_ = M.block(0,0,motion_model_->kStateSize_, motion_model_->kStateSize_);
+
+    int x_position = motion_model_->kStateSize_;
+
+    for (vector<Feature *>::iterator it = feature_list_.begin();
+        it != feature_list_.end() && x_position < M.cols(); ++it) {
+
+        int y_position = 0;
+
+        (*it)->Pxy_ = M.block(y_position,x_position,motion_model_->kStateSize_,(*it)->feature_model_->kFeatureStateSize_);
+
+        y_position += motion_model_->kStateSize_;
+
+        for (vector<Eigen::MatrixXd>::iterator itmat = (*it)->matrix_block_list_.begin();
+            itmat != (*it)->matrix_block_list_.end(); ++itmat) {
+
+            *itmat = M.block(y_position,x_position,itmat->rows(),itmat->cols());
+            y_position += itmat->rows();
+            }
+
+        (*it)->Pyy_ = M.block(y_position,x_position,(*it)->feature_model_->kFeatureStateSize_,(*it)->feature_model_->kFeatureStateSize_);
+
+        x_position += (*it)->feature_model_->kFeatureStateSize_;
+    }
+}
+
+// Create the overall state vector by concatenating the robot state $x_v$ and all
+// the feature states $y_i$.
+// @param V The vector to fill with the state
+void depth_cam_ekf::DepthCamSLAM::construct_total_state(Eigen::VectorXd &V)
+{
+    int  y_position = 0;
+
+    VectorUpdate(V, xv_, y_position);
+    y_position += motion_model_->kStateSize_;
+
+    for (vector<Feature *>::iterator it = feature_list_.begin(); it != feature_list_.end(); ++it) {
+        VectorUpdate(V, (*it)->y_, y_position);
+        y_position += (*it)->feature_model_->kFeatureStateSize_;
+    }
+}
+
+void depth_cam_ekf::DepthCamSLAM::construct_total_measurement_stuff(Eigen::VectorXd &nu_tot, Eigen::MatrixXd &dh_by_dx_tot, Eigen::MatrixXd &R_tot) {
+    nu_tot.setZero();
+    dh_by_dx_tot.setZero();
+    R_tot.setZero();
+
+    int vector_position = 0;
+
+    for (vector<Feature *>::iterator it = selected_feature_list_.begin();
+        it != selected_feature_list_.end(); ++it) {
+
+        if ((*it)->successful_measurement_flag_) {
+            VectorUpdate(nu_tot, (*it)->nu_, vector_position);
+
+            dh_by_dx_tot.block(vector_position,0,(*it)->dh_by_dxv_.rows(),(*it)->dh_by_dxv_.cols()) = (*it)->dh_by_dxv_;
+
+            dh_by_dx_tot.block(vector_position,(*it)->position_in_total_state_vector_,
+                                (*it)->dh_by_dy_.rows(),(*it)->dh_by_dy_.cols()) = (*it)->dh_by_dy_;
+
+            R_tot.block(vector_position,vector_position,(*it)->R_.rows(),(*it)->R_.cols()) = (*it)->R_;
+
+            vector_position += (*it)->feature_model_->kMeasurementSize_;
+        }
+    }
+}
+
+void depth_cam_ekf::DepthCamSLAM::fill_states(const Eigen::VectorXd &V)
+{
+    int y_position = 0;
+
+    xv_ = VectorExtract(V, y_position, motion_model_->kStateSize_);
+    y_position += motion_model_->kStateSize_;
+
+    for (vector<Feature *>::iterator it = feature_list_.begin();
+        it != feature_list_.end() && y_position < V.size(); ++it) {
+        (*it)->y_ = VectorExtract(V, y_position, (*it)->feature_model_->kFeatureStateSize_);
+        y_position += (*it)->feature_model_->kFeatureStateSize_;
     }
 }

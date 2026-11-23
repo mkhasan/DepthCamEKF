@@ -20,7 +20,7 @@ namespace depth_cam_ekf {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         // Constructor for partially-initialised features.
-        Feature(cv::Mat patch, const Eigen::VectorXd &h, double depth, DepthCamSLAM *depth_cam_slam);
+        Feature(cv::Mat patch, const Eigen::VectorXd &h, DepthCamSLAM *depth_cam_slam);
 
         // Constructor for known features. The different number of arguments
         // differentiates it from the constructor for partially-initialised features
@@ -95,7 +95,7 @@ namespace depth_cam_ekf {
         // Was the last measurement of this feature successful?
         bool successful_measurement_flag_;
 
-        bool fully_initialised_flag_;
+        bool is_initialised_;
 
         FeatureModel  *feature_model_;
     };

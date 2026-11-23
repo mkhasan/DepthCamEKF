@@ -3,12 +3,13 @@
 //
 
 #include "GraphicTool.h"
-
+#include "Log.h"
 
 #include "DepthCamSLAM.h"
 #include "support/math_util.h"
 
 using namespace std;
+using namespace Log;
 
 depth_cam_ekf::GraphicTool::GraphicTool(DepthCamSLAM *depth_cam_slam)
   : kQR0_(0.0, 0.0, 1.0, 0.0), kMoveClippingPlaneFactor_(0.999999),
@@ -98,7 +99,7 @@ void depth_cam_ekf::GraphicTool::Draw3dScene(const bool &chk_display_trajectory,
 
         glClearColor(0.0, 0.0, 0.0, 0.0);
     }
-    return;
+
     if(!bInitialised)
         Init();
 
@@ -134,11 +135,14 @@ void depth_cam_ekf::GraphicTool::Draw3dScene(const bool &chk_display_trajectory,
             it != depth_cam_slam_ptr_->feature_list_.end(); ++it) {
 
             (*it)->feature_model_->func_yigraphics_and_Pyiyigraphics((*it)->y_, (*it)->Pyy_);
+            // log(Level::DEBUG, "robot: (%.2f, %.2f, %.2f) feature: (%.2f, %.2f, %.2f)"
+            //     , depth_cam_slam_ptr_->motion_model_->xpRES_(0), depth_cam_slam_ptr_->motion_model_->xpRES_(1), depth_cam_slam_ptr_->motion_model_->xpRES_(2), (*it)->y_(0), (*it)->y_(1), (*it)->y_(2));
 
-            SetFeatureColour((*it)->selected_flag_, (*it)->successful_measurement_flag_, depth_cam_slam_ptr_->marked_feature_label_ == int((*it)->label_));
+            // log(Level::DEBUG, "yy: (%.2f, %.2f, %.2f)", (*it)->feature_model_->PyiyigraphicsRES_(0, 0), (*it)->feature_model_->PyiyigraphicsRES_(1, 1), (*it)->feature_model_->PyiyigraphicsRES_(2, 2));
+            // SetFeatureColour((*it)->selected_flag_, (*it)->successful_measurement_flag_, depth_cam_slam_ptr_->marked_feature_label_ == int((*it)->label_));
 
             if (chk_display_3d_features) {
-                if ((*it)->fully_initialised_flag_) {
+                if ((*it)->is_initialised_) {
                     DrawPoint((*it)->feature_model_->yigraphicsRES_, (*it)->label_ + 1);
                     UpdateDrawingDimension((*it)->feature_model_->yigraphicsRES_);
                 }
@@ -148,8 +152,10 @@ void depth_cam_ekf::GraphicTool::Draw3dScene(const bool &chk_display_trajectory,
             }
 
             if (chk_display_3d_uncertainties) {
-                if ((*it)->fully_initialised_flag_) {
+                if ((*it)->is_initialised_) {
                     DrawCovariance((*it)->feature_model_->yigraphicsRES_, (*it)->feature_model_->PyiyigraphicsRES_, kCovariancesNumberOfSigma_, (*it)->label_ + 1);
+                    //log(Level::DEBUG, "lable %d: yy: (%.2f, %.2f, %.2f) and (%.2f %.2f %.2f)", (*it)->label_, (*it)->Pyy_(0, 0), (*it)->Pyy_(1, 1), (*it)->Pyy_(2, 2)
+                      //  , (*it)->feature_model_->PyiyigraphicsRES_(0, 0), (*it)->feature_model_->PyiyigraphicsRES_(1, 1), (*it)->feature_model_->PyiyigraphicsRES_(2, 2));
                 }
             }
         }
@@ -191,6 +197,7 @@ void depth_cam_ekf::GraphicTool::DrawAR(cv::Mat frame,
 
     SetProjectionMatrix();
 
+
     if (chk_rectify_image_display) {
         DrawRectifiedAR(frame,
                         chk_display_trajectory,
@@ -205,6 +212,7 @@ void depth_cam_ekf::GraphicTool::DrawAR(cv::Mat frame,
     }
 
     glPopAttrib();
+
 }
 
 void depth_cam_ekf::GraphicTool::DrawRectifiedAR(cv::Mat frame,
@@ -237,7 +245,7 @@ void depth_cam_ekf::GraphicTool::DrawRectifiedAR(cv::Mat frame,
                 (*it)->y_, depth_cam_slam_ptr_->xv_, depth_cam_slam_ptr_->Pxx_, (*it)->Pxy_, (*it)->Pyy_);
 
         if (chk_display_3d_features) {
-            if((*it)->fully_initialised_flag_) {
+            if((*it)->is_initialised_) {
             DrawPoint((*it)->feature_model_->zeroedyigraphicsRES_, (*it)->label_ + 1);
             UpdateDrawingDimension((*it)->feature_model_->zeroedyigraphicsRES_);
             }
@@ -247,7 +255,7 @@ void depth_cam_ekf::GraphicTool::DrawRectifiedAR(cv::Mat frame,
         }
 
         if(chk_display_3d_uncertainties) {
-            if((*it)->fully_initialised_flag_) {
+            if((*it)->is_initialised_) {
             // The covariance we draw is relative to the robot
             DrawCovariance((*it)->feature_model_->zeroedyigraphicsRES_, (*it)->feature_model_->PzeroedyigraphicsRES_,
                             kCovariancesNumberOfSigma_, (*it)->label_ + 1);
@@ -279,62 +287,67 @@ void depth_cam_ekf::GraphicTool::DrawRawAR(cv::Mat frame,
     depth_cam_slam_ptr_->motion_model_->func_dxp_by_dxv(depth_cam_slam_ptr_->xv_);
 
     if (chk_display_2d_descriptors || chk_display_2d_search_regions) {
+
         for (vector<Feature *>::const_iterator it = depth_cam_slam_ptr_->feature_list_.begin();
             it != depth_cam_slam_ptr_->feature_list_.end(); ++it) {
 
-        SetFeatureColour((*it)->selected_flag_, (*it)->successful_measurement_flag_, depth_cam_slam_ptr_->marked_feature_label_ == int((*it)->label_));
+            SetFeatureColour((*it)->selected_flag_, (*it)->successful_measurement_flag_, depth_cam_slam_ptr_->marked_feature_label_ == int((*it)->label_));
 
-        if ((*it)->fully_initialised_flag_) {
-            depth_cam_slam_ptr_->feature_model_->func_hi_and_dhi_by_dxp_and_dhi_by_dyi(
-                (*it)->y_, depth_cam_slam_ptr_->motion_model_->xpRES_);
-            depth_cam_slam_ptr_->feature_model_->func_zeroedyigraphics_and_Pzeroedyigraphics(
-                (*it)->y_, depth_cam_slam_ptr_->xv_, depth_cam_slam_ptr_->Pxx_, (*it)->Pxy_, (*it)->Pyy_);
+            if ((*it)->is_initialised_) {
+                depth_cam_slam_ptr_->feature_model_->func_hi_and_dhi_by_dxp_and_dhi_by_dyi(
+                    (*it)->y_, depth_cam_slam_ptr_->motion_model_->xpRES_);
+                depth_cam_slam_ptr_->feature_model_->func_zeroedyigraphics_and_Pzeroedyigraphics(
+                    (*it)->y_, depth_cam_slam_ptr_->xv_, depth_cam_slam_ptr_->Pxx_, (*it)->Pxy_, (*it)->Pyy_);
 
-            // Only draw 2D stuff if z>0 (or we get some nasty loop-around
-            // drawing of features behind the camera)
-            if (depth_cam_slam_ptr_->feature_model_->zeroedyigraphicsRES_(2) > 0) {
-            // Draw search regions
-            if (chk_display_2d_search_regions) {
-                if ((*it)->selected_flag_) {
-                if (selection_mode_)
-                    glLoadName(GLuint((*it)->label_ + 1));
+                // Only draw 2D stuff if z>0 (or we get some nasty loop-around
+                // drawing of features behind the camera)
+                if (depth_cam_slam_ptr_->feature_model_->zeroedyigraphicsRES_(2) > 0) {
 
-                Draw2DCovariance((*it)->h_(0), (*it)->h_(1), (*it)->S_, kCovariancesNumberOfSigma_, 1.0);
+                    // Draw search regions
+                    if (chk_display_2d_search_regions) {
+                        if ((*it)->selected_flag_) {
+                            if (selection_mode_)
+                                glLoadName(GLuint((*it)->label_ + 1));
 
-                glLoadName(0);
+                                Draw2DCovariance((*it)->h_(0), (*it)->h_(1), (*it)->S_.block(0, 0, 2, 2), kCovariancesNumberOfSigma_, 1.0);
+
+                                //log(Level::DEBUG, "lable %d: S: (%.2f, %.2f)", (*it)->label_, (*it)->S_(0, 0), (*it)->S_(1, 1));
+
+                                glLoadName(0);
+                            }
+                    }
+
+                    // Draw image patches
+                    if (chk_display_2d_descriptors) {
+                        // Where to draw the patches?
+                        double draw_patch_x = -1, draw_patch_y = -1;
+
+                        if((*it)->selected_flag_ && (*it)->successful_measurement_flag_) {
+                            // If we just successfully matched this feature,
+                            // then draw match position
+                            draw_patch_x = (*it)->z_(0);
+                            draw_patch_y = (*it)->z_(1);
+                        }
+                        else {
+                            // Otherwise current estimated position after update
+                            draw_patch_x = depth_cam_slam_ptr_->feature_model_->hiRES_(0);
+                            draw_patch_y = depth_cam_slam_ptr_->feature_model_->hiRES_(1);
+                        }
+
+                        DrawDescriptors(draw_patch_x, draw_patch_y, (*it)->patch_, (*it)->label_ + 1);
+                    }
                 }
             }
-
-            // Draw image patches
-            if (chk_display_2d_descriptors) {
-                // Where to draw the patches?
-                double draw_patch_x = -1, draw_patch_y = -1;
-
-                if((*it)->selected_flag_ && (*it)->successful_measurement_flag_) {
-                // If we just successfully matched this feature,
-                // then draw match position
-                draw_patch_x = (*it)->z_(0);
-                draw_patch_y = (*it)->z_(1);
+            else {
+                if (chk_display_2d_search_regions) {
+                //Draw2DPartiallyInitialisedLineEllipses((*it));
                 }
-                else {
-                // Otherwise current estimated position after update
-                draw_patch_x = depth_cam_slam_ptr_->feature_model_->hiRES_(0);
-                draw_patch_y = depth_cam_slam_ptr_->feature_model_->hiRES_(1);
-                }
-
-                DrawDescriptors(draw_patch_x, draw_patch_y, (*it)->patch_, (*it)->label_ + 1);
             }
-            }
-        }
-        else {
-            if (chk_display_2d_search_regions) {
-            //Draw2DPartiallyInitialisedLineEllipses((*it));
-            }
-        }
         }
     }
 
     if (chk_display_initialisation) {
+        //log(Level::DEBUG, "uu: %d vv: %d depth: %.2f", depth_cam_slam_ptr_->uu_, depth_cam_slam_ptr_->vv_, depth_cam_slam_ptr_->dd_);
         Draw2DInitialisationBoxes(depth_cam_slam_ptr_->location_selected_flag_,
                                 depth_cam_slam_ptr_->init_feature_search_region_defined_flag_,
                                 depth_cam_slam_ptr_->uu_,
@@ -1543,9 +1556,9 @@ int depth_cam_ekf::GraphicTool::Picker(int x, int y, bool threed)
         GLuint name = 0;
 
         for (int j = 0; j < int(number_of_names); ++j) {
-        // Don't know why there would be more than one name?
-        // Just take the last one
-        name = *ptr++;
+            // Don't know why there would be more than one name?
+            // Just take the last one
+            name = *ptr++;
         }
 
         if (name != 0) {

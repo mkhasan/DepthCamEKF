@@ -23,6 +23,7 @@ int main(int argc, char * argv[]) {
     bool  g_next = false;
     bool  g_play = false;
     int   g_frame_id  = 0;
+    int start_count = 50;
 
     depth_cam_ekf::Frame  frame;
 
@@ -81,7 +82,7 @@ int main(int argc, char * argv[]) {
         static pangolin::Var<bool>    btn_stop("left_panel2.Stop", false, false);
 
         static pangolin::Var<string>  cap_controls_toggles("right_panel1.Controls Toggles", "");
-        static pangolin::Var<bool>    chk_toggle_tracking("right_panel1.Toggle Tracking", false);
+        static pangolin::Var<bool>    chk_toggle_tracking("right_panel1.Toggle Tracking", true);
         static pangolin::Var<bool>    chk_enable_mapping("right_panel1.Enable Mapping", true);
         static pangolin::Var<bool>    chk_output_tracked_images("right_panel1.Output Tracked Images", false);
         static pangolin::Var<bool>    chk_output_raw_images("right_panel1.Output Raw Images", false);
@@ -113,7 +114,7 @@ int main(int argc, char * argv[]) {
             g_depth_cam_slam->frame_grabber_->GetFrame(g_frame_id, &frame);
 
             if (chk_toggle_tracking) {
-                g_depth_cam_slam->GoOneStep(frame.data,
+                g_depth_cam_slam->GoOneStep(frame.data, frame.depths,
                                     chk_display_trajectory,
                                     chk_enable_mapping);
             }
@@ -157,6 +158,15 @@ int main(int argc, char * argv[]) {
         // Buttons handling
         if (pangolin::Pushed(btn_continuous))
             g_play = true;
+
+        if (g_play) {
+            if (start_count > 0)
+                start_count --;
+            else {
+                g_play = false;
+            }
+        }
+
 
         if (pangolin::Pushed(btn_next))
             g_next = true;
