@@ -41,20 +41,6 @@ namespace depth_cam_ekf {
         void compose_xv(const Eigen::Vector2d &r, const double &q,
                         const Eigen::Vector2d &v, const double &omega,
                         Eigen::VectorXd &xv);
-        // Calculate commonly used Jacobian part dq(omega * delta_t) by domega
-        void dqomegadt_by_domega(const Eigen::Vector3d &omega, const double delta_t,
-                                Eigen::MatrixXd &dqomegadt_by_domega);
-
-        // Ancillary functions: calculate parts of Jacobian dq_by_domega
-        // which are repeatable due to symmetry.
-        double dq0_by_domegaA(const double omegaA, const double omega, const double delta_t);
-        double dqA_by_domegaA(const double omegaA, const double omega, const double delta_t);
-        double dqA_by_domegaB(const double omegaA, const double omegaB, const double omega,
-                                const double delta_t);
-
-        Eigen::Matrix4d dqnorm_by_dq(const Eigen::Quaterniond &q);
-        double dqi_by_dqi(double qi, double qq);
-        double dqi_by_dqj(double qi, double qj, double qq);
 
         Eigen::VectorXd fvRES_;
         Eigen::VectorXd xpRES_;

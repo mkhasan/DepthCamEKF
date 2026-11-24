@@ -24,4 +24,5 @@ find_package(glfw3 REQUIRED)
 include_directories(src/main $ENV{REALSENSE_ROOT}/include $ENV{REALSENSE_ROOT}/third-party/imgui $ENV{REALSENSE_ROOT} ${EIGEN3_INCLUDE_DIR} ${Pangolin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 
-add_executable(main src/main/Main.cpp)
+add_executable(main src/main/Main.cpp
+        src/main/MotionModel.h)
